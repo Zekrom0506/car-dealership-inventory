@@ -45,18 +45,22 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 13. Emails are trimmed + lowercased via `src/utils/normalizeEmail.ts` — the single shared place (login must use it too).
 14. Validation errors are readable, e.g. `email is required`, `password must be at least 8 characters`.
 15. JWT payload: `sub` = user id (string), `role`. `requireAuth` loads the user from the DB on every request: deleted users get 401, and the **role comes from the DB**, so a demoted admin loses access immediately (the token's `role` is only informational, e.g. for the frontend). Login returns 401 `Invalid email or password` for both unknown email and wrong password; login only requires a password to be present (no length rule).
-16. Changing what the user sees (messages, status codes) is a behaviour change → its own RED/GREEN cycle, never part of REFACTOR.
+17. Vehicle responses: `{ vehicle }` (single) / `{ vehicles }` (list). Create is admin only, `quantity` is required (no default), category must match the fixed list exactly (frontend uses a dropdown).
+18. Limits: make/model trimmed and non-empty; price whole number 1–2147483647; quantity whole number 0–2147483647 (PostgreSQL INTEGER max). Unknown body fields (e.g. `id`) are ignored.
+19. DB CHECK constraints (quantity ≥ 0, price > 0) to be added in step 9 (purchase).
+20. Changing what the user sees (messages, status codes) is a behaviour change → its own RED/GREEN cycle, never part of REFACTOR.
 
 ## Schema
 - **User:** id (int), email (unique), passwordHash, role (`USER`|`ADMIN`, default `USER`), createdAt
 - **Vehicle:** id (int), make, model, category, price (int), quantity (int ≥ 0), createdAt, updatedAt
 
 ## Code conventions (backend)
-- Layers: `routes/` → `controllers/` (HTTP only) → `services/` (business rules) → Prisma. Input rules in `validation/*.schemas.ts`, parsed with `parseOrThrow`.
+- Layers: `routes/` → `controllers/` (HTTP only) → `services/` (business rules) → Prisma. Input rules in `validation/*.schemas.ts` (shared field helpers + `MAX_INT` in `validation/fields.ts`), parsed with `parseOrThrow`.
 - Throw `HttpError(status, message)`; `middleware/errorHandler.ts` sends `{ error }`. Non-HttpErrors go to Express's default handler.
 - Read environment variables only through `src/config/env.ts`; all JWT code lives in `src/lib/jwt.ts`.
-- Prisma 7 client is generated into `src/generated/prisma` (git-ignored; `npm install` regenerates it).
-- Claude's sandbox runs tests via `~/pg-sandbox/with-pg.sh npm test` (starts Postgres 16.14 for one command). Claude can't delete files or commit in the user's folder.
+- Prisma 7 client is generated into `src/generated/prisma` (git-ignored). `npm install` and `npm run db:migrate` regenerate it; after pulling a schema change run `npm run db:generate`.
+- Category list comes from the Prisma `Category` enum (`src/generated/prisma/enums`) — one source of truth.
+- Claude's sandbox runs tests via `~/pg-sandbox/with-pg.sh npm test` (starts Postgres 16.14 for one command). Claude can't commit in the user's folder; delete permission was granted (needed for `prisma generate`) — delete only when a tool needs it or the user asks.
 - `git add` uses exact file paths only (never whole folders), so each commit holds only its own changes.
 - Known history quirk: commit `ef061b5` (refactor) also contains the clear-messages change, so `1ad14e6` [RED] did not actually fail. Left as-is; mention in README.
 
@@ -65,8 +69,8 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 - [x] 0. Setup + `GET /api/health`
 - [x] 1. Register
 - [x] 2. Login
-- [ ] 3. Auth middleware (401 / admin 403)
-- [ ] 4. POST /api/vehicles
+- [x] 3. Auth middleware (401 / admin 403)
+- [x] 4. POST /api/vehicles
 - [ ] 5. GET /api/vehicles
 - [ ] 6. GET /api/vehicles/search
 - [ ] 7. PUT /api/vehicles/:id
