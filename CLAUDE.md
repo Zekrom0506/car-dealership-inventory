@@ -61,6 +61,7 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 ## Code conventions (backend)
 - Layers: `routes/` → `controllers/` (HTTP only) → `services/` (business rules) → Prisma. Input rules in `validation/*.schemas.ts` (shared field helpers + `MAX_INT` in `validation/fields.ts`), parsed with `parseOrThrow`.
 - Throw `HttpError(status, message)`; `middleware/errorHandler.ts` sends `{ error }`. Non-HttpErrors go to Express's default handler.
+- Prisma "record not found" (P2025) → 404 via `rethrowNotFound()` in `src/lib/prismaErrors.ts`; controllers read `:id` via `vehicleIdFrom(req)`.
 - Read environment variables only through `src/config/env.ts`; all JWT code lives in `src/lib/jwt.ts`.
 - Prisma 7 client is generated into `src/generated/prisma` (git-ignored). `npm install` and `npm run db:migrate` regenerate it; after pulling a schema change run `npm run db:generate`.
 - Category list comes from the Prisma `Category` enum (`src/generated/prisma/enums`) — one source of truth.
@@ -82,7 +83,7 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 - [x] 5. GET /api/vehicles (newest first, id tie-breaker, includes quantity 0)
 - [x] 6. GET /api/vehicles/search (registered above any `/:id` route)
 - [x] 7. PUT /api/vehicles/:id (partial update, quantity rejected)
-- [ ] 8. DELETE /api/vehicles/:id
+- [x] 8. DELETE /api/vehicles/:id (204; 404 when already deleted)
 - [ ] 9. POST /api/vehicles/:id/purchase (atomic, 409 when out of stock)
 - [ ] 10. POST /api/vehicles/:id/restock
 - [ ] 11. Admin seed script + coverage check
