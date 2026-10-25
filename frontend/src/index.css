@@ -1,0 +1,21 @@
+@import "tailwindcss";
+@import "./styles/theme.css";
+
+@layer base {
+  body {
+    margin: 0;
+    background-color: var(--color-wall);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+  }
+  a {
+    color: var(--color-navy);
+  }
+  a:hover {
+    color: var(--color-ink);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-orange-burnt);
+    outline-offset: 2px;
+  }
+}

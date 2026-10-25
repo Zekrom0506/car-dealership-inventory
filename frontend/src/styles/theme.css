@@ -1,0 +1,43 @@
+/*
+ * yourGarage design tokens — the ONLY colours, fonts and shadows the app may use.
+ * Source: docs/design/ ("Palette & type — approved" board). See CLAUDE.md → Design system.
+ *
+ * Tailwind's default palette, radii and shadows are switched off (`initial`), so a
+ * hard-coded colour or a `rounded-*` class simply won't exist. Corners are always sharp.
+ * Translucent overlays use Tailwind's opacity modifier on a token, e.g. bg-wall/55, bg-ink/45.
+ */
+@theme {
+  --color-*: initial;
+
+  /* Main palette */
+  --color-wall: #EDE3D4;          /* Wall cream — page ground, under the texture */
+  --color-card: #F7F1E7;          /* Card cream — cards, login card, dialogs */
+  --color-paper: #FFFCF6;         /* Inputs, search panel, text on rust/navy */
+  --color-orange: #F28A1E;        /* Garage orange — primary buttons */
+  --color-orange-light: #F9C78F;  /* Light orange — secondary buttons, stepper −/+ */
+  --color-orange-burnt: #C4621A;  /* Burnt orange — primary hover, focus ring, offset shadows */
+  --color-ink: #111111;           /* Solid black — brand, text, borders */
+
+  /* Accents — used sparingly */
+  --color-rust: #A3352B;          /* Delete, errors, SOLD OUT */
+  --color-navy: #34496E;          /* Links, success/info banner */
+  --color-label: #F2C230;         /* Label yellow — strip labels and the header sign only */
+  --color-grease: #4A4137;        /* Muted text, sold-out dashed border */
+  --color-hairline: #D8CBB6;      /* Hairline dividers, skeleton card border */
+  --color-photo: #E3D6C3;         /* Vehicle photo placeholder, loading skeleton */
+
+  /* Fonts */
+  --font-*: initial;
+  --font-display: "Space Grotesk", sans-serif;  /* Brand, headings, prices */
+  --font-body: "Archivo", sans-serif;           /* UI, body, forms */
+  --font-mono: "IBM Plex Mono", monospace;      /* Yellow strip labels, codes */
+
+  /* Sharp corners everywhere */
+  --radius-*: initial;
+
+  /* Hard offset shadows (no blur) */
+  --shadow-*: initial;
+  --shadow-offset: 8px 8px 0 var(--color-orange-burnt);     /* login card, card hover (desktop) */
+  --shadow-offset-sm: 6px 6px 0 var(--color-orange-burnt);  /* same, on mobile */
+  --shadow-dialog: 8px 8px 0 var(--color-ink);              /* dialogs */
+}
