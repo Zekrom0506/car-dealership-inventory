@@ -2,7 +2,7 @@
 
 A full-stack inventory app for a car dealership, built test-first (TDD). Everyone can log in, browse, search and buy cars; admins can also add, edit, restock and delete vehicles. Prices are in Indian rupees (₹, Indian digit grouping).
 
-**Live demo:** _coming soon_ <!-- TODO: replace with the Vercel URL, e.g. https://your-garage.vercel.app -->
+**Live demo:** https://your-garage-utkarsh-v2.vercel.app
 
 ## Features
 
