@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { ApiError } from '../api/client'
-import { createVehicle, listVehicles, updateVehicle, NO_FILTERS, purchaseVehicle, searchVehicles, type NewVehicle, type Vehicle, type VehicleChanges, type VehicleFilters } from '../api/vehicles'
+import { createVehicle, listVehicles, restockVehicle, updateVehicle, NO_FILTERS, purchaseVehicle, searchVehicles, type NewVehicle, type Vehicle, type VehicleChanges, type VehicleFilters } from '../api/vehicles'
 import { useAuth } from '../auth/useAuth'
 import { AppLayout } from '../components/dashboard/AppLayout'
 import { FilterForm } from '../components/dashboard/FilterForm'
+import { RestockDialog } from '../components/dashboard/RestockDialog'
 import { VehicleFormDialog } from '../components/dashboard/VehicleFormDialog'
 import { VehicleCard } from '../components/dashboard/VehicleCard'
 import { Banner } from '../components/ui/Banner'
@@ -31,6 +32,7 @@ export function DashboardPage() {
   const purchaseInProgress = useRef(false)
   const [adding, setAdding] = useState(false)
   const [editing, setEditing] = useState<Vehicle | null>(null)
+  const [restocking, setRestocking] = useState<Vehicle | null>(null)
 
   const messageFrom = (e: unknown) => (e instanceof ApiError ? e.message : 'Something went wrong. Please try again.')
 
@@ -117,6 +119,14 @@ export function DashboardPage() {
       setSuccess(`Vehicle updated. ${updated.make} ${updated.model} has been saved.`)
     }
     setEditing(null)
+  }
+
+  async function saveRestock(vehicle: Vehicle, quantity: number) {
+    const updated = await restockVehicle(vehicle.id, quantity)
+    setVehicles((list) => list?.map((v) => (v.id === updated.id ? updated : v)) ?? null)
+    setRestocking(null)
+    setError(null)
+    setSuccess(`Stock updated. ${updated.make} ${updated.model} now has ${updated.quantity} in stock.`)
   }
 
   async function clearFilters() {
@@ -206,9 +216,13 @@ export function DashboardPage() {
           {vehicles.map((v) => (
             <VehicleCard key={v.id} vehicle={v} onPurchase={() => purchase(v)} purchasing={purchasingId === v.id}
               onEdit={isAdmin ? () => setEditing(v) : undefined}
+              onRestock={isAdmin ? () => setRestocking(v) : undefined}
             />
           ))}
         </div>
+      )}
+      {restocking && (
+        <RestockDialog vehicle={restocking} onSave={(n) => saveRestock(restocking, n)} onClose={() => setRestocking(null)} />
       )}
       {editing && (
         <VehicleFormDialog mode="edit" vehicle={editing} onSave={(body) => saveEdit(editing, body)} onClose={() => setEditing(null)} />

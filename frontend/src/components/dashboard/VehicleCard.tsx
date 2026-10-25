@@ -1,4 +1,4 @@
-import { Pencil, ShoppingCart } from 'lucide-react'
+import { PackagePlus, Pencil, ShoppingCart } from 'lucide-react'
 import type { Vehicle } from '../../api/vehicles'
 import { formatInr } from '../../lib/formatInr'
 import { Button } from '../ui/Button'
@@ -11,6 +11,7 @@ export function VehicleCard({
   onPurchase,
   purchasing = false,
   onEdit,
+  onRestock,
 }: {
   vehicle: Vehicle
   onPurchase?: () => void
@@ -18,6 +19,7 @@ export function VehicleCard({
   purchasing?: boolean
   /** Admin only: shows the admin row with Edit. */
   onEdit?: () => void
+  onRestock?: () => void
 }) {
   const { make, model, category, price, quantity, imageUrl } = vehicle
   const soldOut = quantity === 0
@@ -61,6 +63,9 @@ export function VehicleCard({
           <div className="grid grid-cols-[1fr_1fr_44px] gap-2 border-t border-dashed border-hairline pt-3">
             <Button variant="secondary" className="px-2" icon={<Pencil size={18} aria-hidden="true" />} onClick={onEdit}>
               Edit
+            </Button>
+            <Button variant="secondary" className="px-2" icon={<PackagePlus size={18} aria-hidden="true" />} onClick={onRestock}>
+              Restock
             </Button>
           </div>
         )}

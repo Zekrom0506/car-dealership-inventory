@@ -76,3 +76,9 @@ export async function updateVehicle(id: number, changes: VehicleChanges): Promis
   const { vehicle } = await apiRequest<{ vehicle: Vehicle }>(`/vehicles/${id}`, { method: 'PUT', body: changes })
   return vehicle
 }
+
+/** POST /api/vehicles/:id/restock (admin) — adds `quantity` units; returns the vehicle with its new stock. */
+export async function restockVehicle(id: number, quantity: number): Promise<Vehicle> {
+  const { vehicle } = await apiRequest<{ vehicle: Vehicle }>(`/vehicles/${id}/restock`, { method: 'POST', body: { quantity } })
+  return vehicle
+}
