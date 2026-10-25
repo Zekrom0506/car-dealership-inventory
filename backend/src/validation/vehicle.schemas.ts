@@ -95,6 +95,7 @@ const priceFilter = (field: string) => {
 /** GET /api/vehicles/search query. Unknown parameters are dropped. */
 export const searchVehiclesSchema = z
   .object({
+    q: z.preprocess(blankToUndefined, z.string().trim().optional()),
     make: z.preprocess(blankToUndefined, z.string().trim().optional()),
     model: z.preprocess(blankToUndefined, z.string().trim().optional()),
     category: z.preprocess(blankToUndefined, categoryField.optional()),

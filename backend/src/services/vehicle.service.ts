@@ -30,12 +30,19 @@ export async function listVehicles(): Promise<Vehicle[]> {
 }
 
 /**
- * Vehicles matching every given filter (AND). make/model: partial, case-insensitive;
+ * Vehicles matching every given filter (AND). q: each word in make OR model; make/model: partial, case-insensitive;
  * category: exact; minPrice/maxPrice: inclusive. Filters left undefined are ignored by Prisma.
  */
-export async function searchVehicles({ make, model, category, minPrice, maxPrice }: SearchVehiclesInput): Promise<Vehicle[]> {
+export async function searchVehicles({ q, make, model, category, minPrice, maxPrice }: SearchVehiclesInput): Promise<Vehicle[]> {
   return prisma.vehicle.findMany({
     where: {
+      // q: every word must appear in the make or the model, so "toyota rav" finds Toyota RAV4.
+      AND: q?.split(/\s+/).map((word) => ({
+        OR: [
+          { make: { contains: word, mode: 'insensitive' as const } },
+          { model: { contains: word, mode: 'insensitive' as const } },
+        ],
+      })),
       make: make ? { contains: make, mode: 'insensitive' } : undefined,
       model: model ? { contains: model, mode: 'insensitive' } : undefined,
       category,
