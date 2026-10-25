@@ -188,36 +188,32 @@ DATABASE_URL='<Neon connection string>' ADMIN_EMAIL='<your email>' ADMIN_PASSWOR
 
 ## My AI Usage
 
-### Tools used
-- **Claude (claude.ai), two chats:** the first for planning and building the backend, the second for the frontend, README and test reports. Chat links are in `PROMPTS.md`.
-- **Claude Design:** for the frontend look and layout (cream wall, orange buttons, rust-red danger actions). I used one palette photo as a colour reference only, and exported the design (HTML and PDF) into `docs/design/`.
+### Tools
+- **Claude, two build chats.** The first planned the stack, schema and build order, then built the backend. The second built the frontend and prepared deployment. Both used strict Red-Green-Refactor: a failing test first, then the smallest code to pass, then a refactor. `CLAUDE.md` carried the plan, rules and decisions from one chat to the next.
+- **Claude Design** for the look of the frontend. I exported the design and had Claude turn it into Tailwind tokens.
+- **A separate Claude chat as a prompt coach,** to structure my thoughts and catch errors. I edited its suggestions before sending them to the build chats.
 
-### How I used them
-- **Planning first.** I asked Claude for a stack, folder structure, schema and build order before any code, then reviewed it and made the open decisions myself.
-- **Strict Red-Green-Refactor.** Claude wrote failing tests first and showed the failing output before any implementation. I ran the commits myself, so the history shows `[RED]`, `[GREEN]` and `[REFACTOR]` tags in the commit bodies. Tests written after the code, for coverage only, are tagged `[COVERAGE]` so the history stays honest.
-- **Claude ran the tests in its own sandbox,** and I re-ran them on my Mac (Docker + PostgreSQL 16) at the end of each feature.
-- **Design to code.** I iterated on the design in Claude Design, then had Claude record the palette, fonts and button styles in `CLAUDE.md` and as Tailwind theme tokens before building any screen.
-- **`CLAUDE.md` as shared memory.** It holds the plan, decisions and working rules, so I could continue in a fresh chat without losing context.
+Claude ran the tests in its own sandbox, and I re-ran them on my Mac before committing. I did the Neon, Render and Vercel setup and made every commit myself. Tests added for code that already worked are tagged `[COVERAGE]`, and I broke the code temporarily to prove they could fail.
 
-### Decisions I made or changed
-- **PostgreSQL from the start** (Docker locally, Neon planned for production) so tests and deployment behave the same.
-- **Email normalisation** (trim and lowercase) in one shared helper, so register, login and the seed agree.
-- **Error-message changes kept out of refactors,** and done as their own RED/GREEN cycle, since they change visible behaviour.
-- **Quantity can't be changed through PUT.** Stock changes only through purchase and restock, which avoids overwriting a sale made while an admin edits.
-- **Role read from the database on every request,** so a demoted admin loses access immediately.
-- **No crashes from odd input:** maximum values for price, quantity and image URLs; JSON errors for malformed bodies, unknown routes and unexpected failures, with no internal details or stack traces leaked.
-- **Seed script resets the admin password** from `.env`, so nobody can take over the admin email by registering it first.
-- **"Out of stock" message** when buying a sold-out car, and a list reload after a failed purchase, for two people buying the last car.
-- **Search `q` parameter, optional `imageUrl`** (with `null` clearing it) and an empty-inventory message, added as separate test-first cycles.
-- **Admin edit form** reuses the add form and sends only changed fields.
+### Key decisions
+- **No overselling.** A purchase checks and lowers stock in one conditional `UPDATE … WHERE quantity >= n`, tested with parallel buyers. Database `CHECK` constraints stop stock going negative even if the code is wrong.
+- **Stock is locked out of edits.** `PUT` rejects `quantity`, so an admin saving an edit can't overwrite a sale that happened meanwhile. Restock only adds, and I documented the missing downward correction as a known limitation.
+- **The role comes from the database on every request, not from the token,** so a demoted admin loses access immediately.
+- **Login gives the same error for an unknown email and a wrong password,** so it doesn't reveal which emails are registered.
+- **Every error is JSON,** including malformed bodies, unknown routes and unexpected 500s, with no stack traces sent to the client.
+- **Strict input limits:** prices are whole rupees within PostgreSQL's integer range, IDs are validated (so `/search` is never read as an ID), and image URLs reject `javascript:` and links to other sites.
+- **Search uses a backend `q` parameter,** built test-first, instead of filtering in the browser.
+- **Deployment:** the API accepts browser requests only from the frontend address set in `FRONTEND_ORIGIN`.
 
-### Mistakes I caught and corrected
-- An early commit used `git add backend/src`, which pulled a later change into the wrong commit. I kept the history as it is and switched to exact file paths in every `git add`.
-- Some commits were missing the `Co-authored-by` trailer. I asked for it on every commit.
-- Claude sometimes moved on to GREEN without showing the failing RED output, or said a file was updated when it wasn't. I made showing RED output a standing rule in `CLAUDE.md` and checked the files myself.
-- Claude's commit commands assumed a working directory, so I started each block with `cd` to the project root.
+### Mistakes that were caught
+- **Whole-folder `git add`.** `git add backend/src` pulled a message change into a refactor commit, so the test in `1ad14e6` never actually failed. I left the history as it is and have used exact file paths since.
+- **Skipped RED output.** For the "Out of stock" message, Claude went straight to GREEN. I objected, and "always show the failing output" became a rule in `CLAUDE.md`.
+- **Tests that couldn't fail.** The `isAdmin` test passed against a stub because "not admin" contains "admin". A search test using `q=o` passed while `q` was still ignored, because every car contains an "o". Both now check exact results.
+- **Missing browser preflight.** My CORS spec only checked response headers. Because the frontend sends an `Authorization` header, browsers first send an `OPTIONS` request, which Express was answering with a 200 and no CORS headers. A test for it was added before the code.
+- **Wrong environment assumptions.** Claude tried to check Docker from its sandbox, which is separate from my Mac, and switched to an embedded Postgres 16. Prisma 7 didn't regenerate its client after a migrate, so `db:migrate` now runs `generate` too.
+- **Unpushed commits.** My first deployment failed because the CORS and API-address commits were still only on my Mac. Render and Vercel had built the old code.
 
 ### Reflection
-AI sped up the repetitive parts: boilerplate, test cases, and checking edge cases like race conditions on purchase. It worked best when I gave small, specific tasks with the reasons behind the rules. It needed supervision: it made small mistakes in git handling and process, and I had to read the tests as carefully as the code. I made the design and trade-off decisions, and I can explain every endpoint, test and commit.
+AI was fast at code and especially at edge-case tests: race conditions, ID limits, malformed JSON. It was weakest at reporting what had actually happened with files, commits and test output, and twice it said work was done when it wasn't. Insisting on seeing the failing output and re-running everything on my Mac caught most problems. Next time I would push after every commit and test the deployed site earlier. Every commit that used AI carries the co-author trailer.
 
 The full conversations are linked in [PROMPTS.md](PROMPTS.md).
