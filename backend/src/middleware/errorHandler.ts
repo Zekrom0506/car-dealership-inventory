@@ -7,10 +7,13 @@ function isMalformedJsonError(err: unknown): boolean {
 }
 
 /**
- * Central error handler: turns an HttpError into `{ error: message }` with its status,
- * and a malformed JSON body into 400.
- * Any other error is passed on to Express's default handler.
+ * Central error handler — every error response is JSON `{ error }`:
+ * - HttpError → its status and message
+ * - malformed JSON body → 400
+ * - anything else → 500 "Internal server error"; the real error is logged on the
+ *   server only, so internal details and stack traces never reach the client.
  * Express 5 forwards errors thrown in async handlers here automatically.
+ * Express needs all four parameters to recognise this as an error handler.
  */
 export function errorHandler(err: unknown, _req: Request, res: Response, next: NextFunction): void {
   if (err instanceof HttpError) {
@@ -21,5 +24,11 @@ export function errorHandler(err: unknown, _req: Request, res: Response, next: N
     res.status(400).json({ error: 'Request body must be valid JSON' });
     return;
   }
-  next(err);
+  // A response that has already started can't be replaced; let Express close it.
+  if (res.headersSent) {
+    next(err);
+    return;
+  }
+  console.error(err);
+  res.status(500).json({ error: 'Internal server error' });
 }
