@@ -132,10 +132,8 @@ npm run test:coverage
 
 | Part | Tests | Statements | Branches | Functions | Lines | Report |
 |---|---|---|---|---|---|---|
-| Backend | 190 passed | 98.28% | 94.44% | 95% | 98.23% | [docs/test-report-backend.md](docs/test-report-backend.md) |
+| Backend | 218 passed | 98.34% | 94.44% | 95.23% | 98.28% | [docs/test-report-backend.md](docs/test-report-backend.md) |
 | Frontend | 122 passed | 96.77% | 88.74% | 97.88% | 98.93% | [docs/test-report-frontend.md](docs/test-report-frontend.md) |
-
-The backend report was generated before the image URL and `q` search features were added; the suite now has 218 tests, all passing.
 
 ## Screenshots
 

@@ -154,7 +154,7 @@ Login card: `bg-card`, `1.5px solid ink`, `shadow-offset` (sm on mobile), 440px 
 - [x] 11. Admin seed script + coverage check
   - [x] startup env check · [x] JSON 400 malformed body · [x] JSON 404 unknown routes · [x] JSON 500 unexpected errors
   - [x] seed: `npm run db:seed` (src/seed/)
-  - [x] coverage report → `docs/test-report-backend.md` (190 tests, 98.28% stmts / 94.44% branches)
+  - [x] coverage report → `docs/test-report-backend.md` (218 tests, 98.34% stmts / 94.44% branches)
 ### Phase 2 — Frontend design ✅ complete (`docs/design/`; tokens in `frontend/src/styles/theme.css`)
 ### Phase 3 — Frontend build (TDD with Vitest + RTL)
 - [x] 0. Test tooling (Vitest 5, jsdom, RTL, jest-dom), `/api` dev proxy, 1600px backgrounds
