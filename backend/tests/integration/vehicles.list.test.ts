@@ -31,6 +31,7 @@ describe('GET /api/vehicles', () => {
           category: 'Sedan',
           price: 20000,
           quantity: 5,
+          imageUrl: null,
           createdAt: vehicle.createdAt.toISOString(),
           updatedAt: vehicle.updatedAt.toISOString(),
         },

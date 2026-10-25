@@ -10,6 +10,7 @@ const app = createApp();
 const CATEGORY_MESSAGE = 'category must be one of: Sedan, SUV, Hatchback, Truck, Coupe, Convertible, Van';
 const PRICE_MESSAGE = 'price must be a positive whole number';
 const ID_MESSAGE = 'id must be a positive whole number';
+const IMAGE_URL_MESSAGE = 'imageUrl must be an http(s) URL or a path starting with /';
 
 type TestUser = { id: number; role: 'USER' | 'ADMIN' };
 let admin: TestUser;
@@ -44,6 +45,39 @@ describe('PUT /api/vehicles/:id', () => {
     });
     const saved = await prisma.vehicle.findUnique({ where: { id: vehicle.id } });
     expect(saved?.price).toBe(18000);
+  });
+
+  it('sets imageUrl (trimmed) and keeps the other fields', async () => {
+    const vehicle = await createVehicleRecord();
+
+    const response = await updateVehicle(vehicle.id, { imageUrl: ' https://images.pexels.com/photos/1/car.jpg ' });
+
+    expect(response.status).toBe(200);
+    expect(response.body.vehicle).toMatchObject({
+      imageUrl: 'https://images.pexels.com/photos/1/car.jpg',
+      make: 'Toyota',
+      price: 20000,
+    });
+  });
+
+  it('removes the image when imageUrl is null', async () => {
+    const vehicle = await createVehicleRecord({ imageUrl: '/cars/honda-city.jpg' });
+
+    const response = await updateVehicle(vehicle.id, { imageUrl: null });
+
+    expect(response.status).toBe(200);
+    expect(response.body.vehicle.imageUrl).toBeNull();
+    const saved = await prisma.vehicle.findUnique({ where: { id: vehicle.id } });
+    expect(saved?.imageUrl).toBeNull();
+  });
+
+  it('keeps the image when imageUrl is not sent', async () => {
+    const vehicle = await createVehicleRecord({ imageUrl: '/cars/honda-city.jpg' });
+
+    const response = await updateVehicle(vehicle.id, { price: 18000 });
+
+    expect(response.status).toBe(200);
+    expect(response.body.vehicle.imageUrl).toBe('/cars/honda-city.jpg');
   });
 
   it('can change make, model and category together, trimming make and model', async () => {
@@ -96,7 +130,7 @@ describe('PUT /api/vehicles/:id', () => {
     const response = await updateVehicle(vehicle.id, body);
 
     expect(response.status).toBe(400);
-    expect(response.body).toEqual({ error: 'provide at least one field to update: make, model, category, price' });
+    expect(response.body).toEqual({ error: 'provide at least one field to update: make, model, category, price, imageUrl' });
   });
 
   it.each([
@@ -108,6 +142,9 @@ describe('PUT /api/vehicles/:id', () => {
     ['price has decimals', { price: 99.5 }, PRICE_MESSAGE],
     ['price is a string', { price: '18000' }, PRICE_MESSAGE],
     ['price is above the maximum', { price: 2_147_483_648 }, 'price must be at most 2147483647'],
+    ['imageUrl is not a URL', { imageUrl: 'not a url' }, IMAGE_URL_MESSAGE],
+    ['imageUrl uses javascript:', { imageUrl: 'javascript:alert(1)' }, IMAGE_URL_MESSAGE],
+    ['imageUrl is longer than 2048 characters', { imageUrl: '/' + 'a'.repeat(2048) }, 'imageUrl must be at most 2048 characters'],
   ])('returns 400 when %s, and changes nothing', async (_case, body, message) => {
     const vehicle = await createVehicleRecord();
 
