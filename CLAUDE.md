@@ -39,7 +39,7 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 5. Purchase body: optional `{ quantity }`, default 1. No purchase history table.
 6. Search: case-insensitive partial match on make/model; exact category; inclusive `minPrice`/`maxPrice`; filters combined with AND; 400 if min > max.
 7. Categories: Sedan, SUV, Hatchback, Truck, Coupe, Convertible, Van.
-8. Price = integer (whole currency units). Quantity = integer ≥ 0.
+8. Price = integer in **whole Indian rupees (INR, ₹)** — no paise. Frontend must show `₹` with Indian digit grouping (e.g. `₹7,50,000`, `₹1,20,00,000`; `Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 })`). Quantity = integer ≥ 0.
 9. Errors: `{ "error": "message" }`. JWT expires in 1h.
 10. Secrets in `.env` / `.env.test` (git-ignored); `.env.example` and `.env.test.example` committed. App refuses to start without `JWT_SECRET`.
 11. Register returns `201 { user: { id, email, role, createdAt } }` (no token). Login returns `200 { token, user }`.
