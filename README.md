@@ -2,7 +2,7 @@
 
 A full-stack inventory app for a car dealership, built test-first (TDD). Everyone can log in, browse, search and buy cars; admins can also add, edit, restock and delete vehicles. Prices are in Indian rupees (₹, Indian digit grouping).
 
-**Live demo:** _coming soon_ <!-- TODO: add the deployed URL -->
+**Live demo:** _coming soon_ <!-- TODO: replace with the Vercel URL, e.g. https://your-garage.vercel.app -->
 
 ## Features
 
@@ -128,6 +128,33 @@ npm test
 npm run test:coverage
 ```
 
+## Deployment
+
+Three free services: **Neon** (PostgreSQL), **Render** (API) and **Vercel** (frontend).
+
+| Service | Setting | Value |
+|---|---|---|
+| Neon | `DATABASE_URL` | the direct (non-pooled) connection string, ending in `?sslmode=require` |
+| Render | Root directory | `backend` |
+| Render | Build command | `npm install --include=dev && npx prisma generate && npx prisma migrate deploy && npm run build` |
+| Render | Start command | `npm start` |
+| Render | Health check path | `/api/health` |
+| Render | Environment | `DATABASE_URL`, `JWT_SECRET` (long random string), `JWT_EXPIRES_IN=1h`, `FRONTEND_ORIGIN` (the Vercel URL, no trailing path), `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `NODE_VERSION=22` (Render supplies `PORT` itself) |
+| Vercel | Root directory | `frontend` |
+| Vercel | Build command / output | `npm run build` / `dist` |
+| Vercel | Environment | `VITE_API_URL` = the Render URL (e.g. `https://your-api.onrender.com`) |
+
+- The API only accepts browser requests from the origin(s) in `FRONTEND_ORIGIN` (CORS). Several origins can be comma-separated.
+- `frontend/vercel.json` sends every path to `index.html`, so pages like `/login` also work on refresh.
+- Create the admin and sample cars once, from your own computer, after the first Render deploy (migrations run during the build):
+
+```
+cd backend
+```
+```
+DATABASE_URL='<Neon connection string>' ADMIN_EMAIL='<your email>' ADMIN_PASSWORD='<strong password>' npm run db:seed
+```
+
 ## Test reports
 
 | Part | Tests | Statements | Branches | Functions | Lines | Report |
@@ -155,6 +182,7 @@ npm run test:coverage
 - **No downward stock correction.** Quantity can't be changed through edit, and restock only adds. If a stock-take finds fewer cars, an admin can only lower stock by "purchasing" the extra units. A future fix: an admin-only relative adjustment (e.g. `{ "change": -2 }`) that refuses to go below zero.
 - **Mobile search and filter controls are not built yet.** The design's mobile search box, category chips and Filter panel aren't done; on small screens the desktop filter form is shown instead. The mobile account menu is also not done (the header shows Log out directly).
 - **Dialogs close only with Cancel.** Esc-to-close and keeping keyboard focus inside dialogs are not done yet.
+- **Free hosting is slow to wake.** Render's free plan puts the API to sleep when idle, so the first request after a break can take about a minute.
 - **Uncovered lines.** A few lines are not covered by tests, mostly defensive code (e.g. fallback error messages, "already submitting" guards). Each one is listed with the reason in the test reports. One real frontend gap: no test types into the Model filter.
 - **Git history quirk.** Commit `ef061b5` (a refactor) also contains a change to clearer error messages, so the earlier `[RED]` commit `1ad14e6` did not actually fail.
 

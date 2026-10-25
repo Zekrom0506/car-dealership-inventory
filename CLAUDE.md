@@ -171,5 +171,7 @@ Login card: `bg-card`, `1.5px solid ink`, `shadow-offset` (sm on mobile), 440px 
 - [ ] 9. Mobile layout (search box → `q`, category chips, Filter panel), account menu, dialog a11y (Esc, focus trap), screenshots
 **Left to do (as of 2026-10-25):** step 9 mobile polish (search box/chips/Filter panel, account menu, dialog Esc + focus trap; dialogs currently close only via Cancel), then Phase 4 deployment and Phase 5 README.
 ### Phase 4 — Deployment (Neon Postgres + API host + frontend host)
-- **CORS:** if the frontend and API end up on different domains, the backend needs CORS allowing only the frontend's origin — add as a small backend RED/GREEN cycle here. (Locally the Vite proxy avoids it.)
+- [x] **CORS:** `src/middleware/cors.ts`; allowed origins come from `FRONTEND_ORIGIN` (comma-separated, trailing slash ignored, unset = none); answers OPTIONS preflight with 204. (Locally the Vite proxy avoids it.)
+- [x] Frontend API address: `VITE_API_URL` (backend address; `/api` appended if missing; unset → `/api`); `frontend/vercel.json` rewrites all paths to `index.html`.
+- [ ] Deploy: Neon → Render (backend, root `backend`) → Vercel (frontend, root `frontend`) → set `FRONTEND_ORIGIN` → seed once from the Mac; then put the live link in the README.
 ### Phase 5 — README (setup, screenshots, "My AI Usage"), test report, PROMPTS.md
