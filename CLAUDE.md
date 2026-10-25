@@ -61,6 +61,7 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 - Prisma 7 client is generated into `src/generated/prisma` (git-ignored). `npm install` and `npm run db:migrate` regenerate it; after pulling a schema change run `npm run db:generate`.
 - Category list comes from the Prisma `Category` enum (`src/generated/prisma/enums`) — one source of truth.
 - Claude's sandbox runs tests via `~/pg-sandbox/with-pg.sh npm test` (starts Postgres 16.14 for one command). Claude can't commit in the user's folder; delete permission was granted (needed for `prisma generate`) — delete only when a tool needs it or the user asks.
+- Command blocks for the user: explanations go **above** commands, never as `# comments` on the same line (user's zsh passes them as arguments).
 - `git add` uses exact file paths only (never whole folders), so each commit holds only its own changes.
 - Known history quirk: commit `ef061b5` (refactor) also contains the clear-messages change, so `1ad14e6` [RED] did not actually fail. Left as-is; mention in README.
 
@@ -71,7 +72,7 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 - [x] 2. Login
 - [x] 3. Auth middleware (401 / admin 403)
 - [x] 4. POST /api/vehicles
-- [ ] 5. GET /api/vehicles
+- [x] 5. GET /api/vehicles (newest first, id tie-breaker, includes quantity 0)
 - [ ] 6. GET /api/vehicles/search
 - [ ] 7. PUT /api/vehicles/:id
 - [ ] 8. DELETE /api/vehicles/:id
