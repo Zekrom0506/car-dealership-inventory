@@ -76,7 +76,7 @@ describe('DashboardPage — purchase', () => {
   })
 
   it('shows the server’s message when the car sold out meanwhile (409)', async () => {
-    fakeFetch(jsonResponse(200, { vehicles: [i20] }), jsonResponse(409, { error: 'Out of stock' }))
+    fakeFetch(jsonResponse(200, { vehicles: [i20] }), jsonResponse(409, { error: 'Out of stock' }), jsonResponse(200, { vehicles: [i20] }))
     renderDashboard()
     await screen.findByRole('heading', { name: 'i20' })
 
@@ -84,6 +84,22 @@ describe('DashboardPage — purchase', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Out of stock')
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  })
+
+  it('reloads the list after a 409 so the card shows Sold out', async () => {
+    const fetchMock = fakeFetch(
+      jsonResponse(200, { vehicles: [i20] }),
+      jsonResponse(409, { error: 'Out of stock' }),
+      jsonResponse(200, { vehicles: [{ ...i20, quantity: 0 }] }),
+    )
+    renderDashboard()
+    await screen.findByRole('heading', { name: 'i20' })
+
+    await userEvent.click(within(card()).getByRole('button', { name: 'Purchase' }))
+
+    expect(await within(card()).findByRole('button', { name: 'Sold out' })).toBeDisabled()
+    expect(requestAt(fetchMock, 2).url).toBe('/api/vehicles')
+    expect(screen.getByRole('alert')).toHaveTextContent('Out of stock')
   })
 
   it('can dismiss the confirmation', async () => {
