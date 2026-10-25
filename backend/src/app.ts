@@ -1,5 +1,6 @@
 import express, { Express } from 'express';
 import { authRouter } from './routes/auth.routes';
+import { vehiclesRouter } from './routes/vehicles.routes';
 import { errorHandler } from './middleware/errorHandler';
 
 /**
@@ -16,6 +17,7 @@ export function createApp(): Express {
   });
 
   app.use('/api/auth', authRouter);
+  app.use('/api/vehicles', vehiclesRouter);
 
   // Must be registered after all routes.
   app.use(errorHandler);
