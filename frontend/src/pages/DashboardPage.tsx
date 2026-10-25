@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { ApiError } from '../api/client'
-import { createVehicle, listVehicles, restockVehicle, updateVehicle, NO_FILTERS, purchaseVehicle, searchVehicles, type NewVehicle, type Vehicle, type VehicleChanges, type VehicleFilters } from '../api/vehicles'
+import { createVehicle, deleteVehicle, listVehicles, restockVehicle, updateVehicle, NO_FILTERS, purchaseVehicle, searchVehicles, type NewVehicle, type Vehicle, type VehicleChanges, type VehicleFilters } from '../api/vehicles'
 import { useAuth } from '../auth/useAuth'
 import { AppLayout } from '../components/dashboard/AppLayout'
+import { DeleteDialog } from '../components/dashboard/DeleteDialog'
 import { FilterForm } from '../components/dashboard/FilterForm'
 import { RestockDialog } from '../components/dashboard/RestockDialog'
 import { VehicleFormDialog } from '../components/dashboard/VehicleFormDialog'
@@ -33,6 +34,7 @@ export function DashboardPage() {
   const [adding, setAdding] = useState(false)
   const [editing, setEditing] = useState<Vehicle | null>(null)
   const [restocking, setRestocking] = useState<Vehicle | null>(null)
+  const [deleting, setDeleting] = useState<Vehicle | null>(null)
 
   const messageFrom = (e: unknown) => (e instanceof ApiError ? e.message : 'Something went wrong. Please try again.')
 
@@ -129,6 +131,15 @@ export function DashboardPage() {
     setSuccess(`Stock updated. ${updated.make} ${updated.model} now has ${updated.quantity} in stock.`)
   }
 
+  async function confirmDelete(vehicle: Vehicle) {
+    await deleteVehicle(vehicle.id)
+    setVehicles((list) => list?.filter((v) => v.id !== vehicle.id) ?? null)
+    setTotal((n) => n - 1)
+    setDeleting(null)
+    setError(null)
+    setSuccess(`Vehicle deleted. ${vehicle.make} ${vehicle.model} has been removed.`)
+  }
+
   async function clearFilters() {
     setFilters(NO_FILTERS)
     setError(null)
@@ -217,10 +228,12 @@ export function DashboardPage() {
             <VehicleCard key={v.id} vehicle={v} onPurchase={() => purchase(v)} purchasing={purchasingId === v.id}
               onEdit={isAdmin ? () => setEditing(v) : undefined}
               onRestock={isAdmin ? () => setRestocking(v) : undefined}
+              onDelete={isAdmin ? () => setDeleting(v) : undefined}
             />
           ))}
         </div>
       )}
+      {deleting && <DeleteDialog vehicle={deleting} onConfirm={() => confirmDelete(deleting)} onClose={() => setDeleting(null)} />}
       {restocking && (
         <RestockDialog vehicle={restocking} onSave={(n) => saveRestock(restocking, n)} onClose={() => setRestocking(null)} />
       )}

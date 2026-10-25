@@ -82,3 +82,8 @@ export async function restockVehicle(id: number, quantity: number): Promise<Vehi
   const { vehicle } = await apiRequest<{ vehicle: Vehicle }>(`/vehicles/${id}/restock`, { method: 'POST', body: { quantity } })
   return vehicle
 }
+
+/** DELETE /api/vehicles/:id (admin) — 204 No Content. */
+export async function deleteVehicle(id: number): Promise<void> {
+  await apiRequest<void>(`/vehicles/${id}`, { method: 'DELETE' })
+}
