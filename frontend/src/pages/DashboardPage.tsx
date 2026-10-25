@@ -64,7 +64,14 @@ export function DashboardPage() {
         </div>
       )}
 
-      {vehicles && (
+      {vehicles?.length === 0 && (
+        <div className="flex flex-col items-center gap-2 border-[1.5px] border-dashed border-grease bg-card px-6 py-12 text-center">
+          <h2 className="m-0 font-display text-2xl font-bold">No vehicles in stock yet</h2>
+          {isAdmin && <p className="m-0 text-[15px] text-grease">Add the first vehicle to get started.</p>}
+        </div>
+      )}
+
+      {vehicles && vehicles.length > 0 && (
         <div className={GRID}>
           {vehicles.map((v) => (
             <VehicleCard key={v.id} vehicle={v} />
