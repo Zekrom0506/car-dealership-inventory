@@ -44,7 +44,7 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 12. Password minimum 8 characters.
 13. Emails are trimmed + lowercased via `src/utils/normalizeEmail.ts` — the single shared place (login must use it too).
 14. Validation errors are readable, e.g. `email is required`, `password must be at least 8 characters`.
-15. JWT payload: `sub` = user id (string), `role`. Role changes need a new login. Login returns 401 `Invalid email or password` for both unknown email and wrong password; login only requires a password to be present (no length rule).
+15. JWT payload: `sub` = user id (string), `role`. `requireAuth` loads the user from the DB on every request: deleted users get 401, and the **role comes from the DB**, so a demoted admin loses access immediately (the token's `role` is only informational, e.g. for the frontend). Login returns 401 `Invalid email or password` for both unknown email and wrong password; login only requires a password to be present (no length rule).
 16. Changing what the user sees (messages, status codes) is a behaviour change → its own RED/GREEN cycle, never part of REFACTOR.
 
 ## Schema
