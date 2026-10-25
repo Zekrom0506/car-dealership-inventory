@@ -2,6 +2,7 @@ import express, { Express } from 'express';
 import { authRouter } from './routes/auth.routes';
 import { vehiclesRouter } from './routes/vehicles.routes';
 import { errorHandler } from './middleware/errorHandler';
+import { notFoundHandler } from './middleware/notFound';
 
 /**
  * Builds and configures the Express application.
@@ -19,7 +20,8 @@ export function createApp(): Express {
   app.use('/api/auth', authRouter);
   app.use('/api/vehicles', vehiclesRouter);
 
-  // Must be registered after all routes.
+  // Both must be registered after all routes: first "no route matched", then errors.
+  app.use(notFoundHandler);
   app.use(errorHandler);
 
   return app;
