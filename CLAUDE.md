@@ -55,6 +55,8 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 20. Search: blank and unknown query parameters are ignored; terms trimmed; unknown category → 400 with the list (same message as create); minPrice/maxPrice whole numbers 0–2147483647, min > max → 400. Same newest-first order as the list (`NEWEST_FIRST` in vehicle.service.ts).
 21. Ids in the URL must be whole numbers 1–2147483647 (`vehicleIdSchema`), else 400 `id must be a positive whole number` — so `/search` can never be read as an id.
 21a. PUT is a partial update of make/model/category/price (same rules as create); empty body → 400. `quantity` in the body → 400 `quantity cannot be changed here; use purchase or restock` (avoids an edit form overwriting a concurrent purchase). Unknown vehicle → 404 `Vehicle not found`. Check order: auth → admin → id → body → exists.
+21b. Startup: `assertRequiredEnv()` (config/env.ts) — server exits with code 1 and `Missing required environment variable: NAME` if `JWT_SECRET` or `DATABASE_URL` is missing/blank.
+21c. Every error response is JSON `{ error }`: malformed body → 400 `Request body must be valid JSON`; no route matched (any path/method) → 404 `Not found` (404, not 405); anything unexpected → 500 `Internal server error`, real error logged with `console.error` only (no details/stack to the client).
 22. Changing what the user sees (messages, status codes) is a behaviour change → its own RED/GREEN cycle, never part of REFACTOR.
 
 ## Schema
@@ -91,6 +93,9 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 - [x] 9. POST /api/vehicles/:id/purchase (single conditional UPDATE, DB CHECK constraints)
 - [x] 10. POST /api/vehicles/:id/restock (single conditional UPDATE)
 - [ ] 11. Admin seed script + coverage check
+  - [x] startup env check · [x] JSON 400 malformed body · [x] JSON 404 unknown routes · [x] JSON 500 unexpected errors
+  - [ ] seed: admin (refuse if ADMIN_PASSWORD missing or < 8 chars; idempotent; promote existing USER) + ~12 sample vehicles only if table empty
+  - [ ] coverage report
 ### Phase 2 — Frontend design (look & feel, pages, components)
 ### Phase 3 — Frontend build (TDD with Vitest + RTL)
 ### Phase 4 — Deployment (Neon Postgres + API host + frontend host)
