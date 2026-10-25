@@ -22,3 +22,18 @@ describe('malformed JSON body', () => {
     expect(response.body).toEqual({ error: 'Request body must be valid JSON' });
   });
 });
+
+describe('unknown routes', () => {
+  it.each([
+    ['an unknown path', 'get', '/api/nope'],
+    ['the site root', 'get', '/'],
+    ['a method no route uses (PATCH)', 'patch', '/api/vehicles/1'],
+    ['an unknown path under a real route', 'post', '/api/vehicles/1/nope'],
+  ] as const)('returns 404 JSON { error } for %s', async (_case, method, url) => {
+    const response = await request(app)[method](url);
+
+    expect(response.status).toBe(404);
+    expect(response.type).toBe('application/json');
+    expect(response.body).toEqual({ error: 'Not found' });
+  });
+});
