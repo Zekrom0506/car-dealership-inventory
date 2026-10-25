@@ -22,7 +22,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'html'],
       include: ['src/**/*.{ts,tsx}'],
-      exclude: ['src/main.tsx', 'src/test/**', 'src/**/*.test.{ts,tsx}'],
+      exclude: ['src/main.tsx', 'src/test/**', 'src/dev/**', 'src/**/*.test.{ts,tsx}'],
     },
   },
 })
