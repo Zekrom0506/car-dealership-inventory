@@ -1,12 +1,18 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import App from './App'
 
-// Proves the test setup works (Vitest + jsdom + React Testing Library + jest-dom matchers).
+beforeEach(() => {
+  localStorage.clear()
+  window.history.pushState({}, '', '/')
+})
+
+// The real app: router + auth state + routes, opened at / in the browser.
 describe('App', () => {
-  it('renders the yourGarage brand', () => {
+  it('shows the log in page at / when logged out', async () => {
     render(<App />)
 
-    expect(screen.getByRole('heading', { name: 'yourGarage' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeInTheDocument()
+    expect(window.location.pathname).toBe('/login')
   })
 })
