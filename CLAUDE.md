@@ -119,6 +119,20 @@ Login card: `bg-card`, `1.5px solid ink`, `shadow-offset` (sm on mobile), 440px 
 **Icons:** Lucide (`lucide-react`): car, user, log-out, circle-check, x, search, funnel, shopping-cart, pencil, trash-2, circle-alert.
 **Prices:** `₹` with Indian grouping (`Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 })`).
 
+## Frontend decisions (agreed 2026-10-25)
+- One dashboard for everyone; admin extras (ADMIN badge, "Manage inventory" label, Add vehicle, Edit/Restock/Delete row) render only for role ADMIN.
+- Routes: `/login`, `/register` (tabs are links between them), `/` dashboard (logged-in only).
+- Purchase always buys 1 (no quantity picker). Search runs on Filter / Enter, not per keystroke.
+- Register "Confirm password" is checked in the frontend only.
+- Mobile (< 768px header): one "Search make or model" box → backend `q` (make OR model). Category chips "All, SUV, Hatchback, Coupe, +4"; "+4" reveals all 7. "Filter" opens a panel with category + min/max price (styled like the desktop filter form). Account icon opens a small menu showing the email and a Log out button.
+- Grid: 1 column < 640px, 2 < 1024px, 3 < 1280px, 4 from 1280px.
+- Edit dialog: title "Edit vehicle", quantity field hidden ("Only when adding").
+- Messages: server errors → rust banner shaped like the navy one; success after add/edit/restock/delete/purchase → navy banner (e.g. "Stock updated. Ford Mustang now has 5 in stock."); validation text not in the design → same tone (e.g. "Price must be a whole number").
+- Background photos for the app are resized to 1600px in `frontend/src/assets/backgrounds/` (originals stay in `docs/design/`).
+- Focus: 2px `orange-burnt` outline, 2px offset.
+- Tests: Vitest + RTL with our API module faked per test (no real network). Styling is checked visually against the design at 1440px and 390px, not unit-tested.
+- Dev: Vite proxies `/api` → `http://localhost:4000` (no CORS locally).
+
 ## Phases & progress
 ### Phase 1 — Backend (TDD) ✅ complete
 - [x] 0. Setup + `GET /api/health`
@@ -138,5 +152,17 @@ Login card: `bg-card`, `1.5px solid ink`, `shadow-offset` (sm on mobile), 440px 
   - [x] coverage report → `docs/test-report-backend.md` (190 tests, 98.28% stmts / 94.44% branches)
 ### Phase 2 — Frontend design ✅ complete (`docs/design/`; tokens in `frontend/src/styles/theme.css`)
 ### Phase 3 — Frontend build (TDD with Vitest + RTL)
+- [x] 0. Test tooling (Vitest 5, jsdom, RTL, jest-dom), `/api` dev proxy, 1600px backgrounds
+- [ ] 1. Shared UI: Button, Label, TextField, Banner, `formatInr`
+- [ ] 2. API client + auth state (token storage, Bearer header, 401 → logout)
+- [ ] 3. Log in + Register pages
+- [ ] 4. Routing + guards
+- [ ] 5. Dashboard list (skeleton, card states, Sold out disabled, Only 1 left, "Showing X of Y")
+- [ ] 6a. **Backend:** `q` search parameter (make OR model), its own RED/GREEN cycle
+- [ ] 6b. Search + filter (desktop form, mobile box/chips/panel, empty state, Clear all filters)
+- [ ] 7. Purchase flow (banner, stock update, 409 error, no double-submit)
+- [ ] 8. Admin (role-gated UI, Add/Edit dialog, Restock stepper, Delete confirm)
+- [ ] 9. Mobile layout, account menu, dialog a11y (Esc, focus trap), screenshots
 ### Phase 4 — Deployment (Neon Postgres + API host + frontend host)
+- **CORS:** if the frontend and API end up on different domains, the backend needs CORS allowing only the frontend's origin — add as a small backend RED/GREEN cycle here. (Locally the Vite proxy avoids it.)
 ### Phase 5 — README (setup, screenshots, "My AI Usage"), test report, PROMPTS.md
