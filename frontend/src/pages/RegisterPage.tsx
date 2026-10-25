@@ -1,11 +1,11 @@
-import { useRef, useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router'
-import { ApiError } from '../api/client'
+import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router'
 import { AuthLayout } from '../components/auth/AuthLayout'
 import { Banner } from '../components/ui/Banner'
 import { Button } from '../components/ui/Button'
 import { TextField } from '../components/ui/TextField'
 import { useAuth } from '../auth/useAuth'
+import { useSubmitAction } from '../hooks/useSubmitAction'
 import { AUTH_MESSAGES, emailError } from '../lib/validation'
 
 type Field = 'email' | 'password' | 'confirm'
@@ -16,13 +16,9 @@ const MIN_PASSWORD_LENGTH = 8
 /** /register — "Create your account". Creates the account, then logs in. */
 export function RegisterPage() {
   const { register } = useAuth()
-  const navigate = useNavigate()
   const [values, setValues] = useState({ email: '', password: '', confirm: '' })
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({})
-  const [serverError, setServerError] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-  // A ref (not state) so a second submit in the same instant is still blocked.
-  const submitting = useRef(false)
+  const { busy, serverError, isSubmitting, run } = useSubmitAction('/')
 
   function update(field: Field, value: string) {
     setValues((v) => ({ ...v, [field]: value }))
@@ -48,23 +44,13 @@ export function RegisterPage() {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    if (submitting.current) return
+    if (isSubmitting()) return
 
     const found = validate()
     setErrors(found)
     if (found.email || found.password || found.confirm) return
 
-    submitting.current = true
-    setBusy(true)
-    setServerError(null)
-    try {
-      await register(values.email.trim(), values.password)
-      navigate('/', { replace: true })
-    } catch (error) {
-      setServerError(error instanceof ApiError ? error.message : 'Something went wrong. Please try again.')
-      submitting.current = false
-      setBusy(false)
-    }
+    await run(() => register(values.email.trim(), values.password))
   }
 
   return (
