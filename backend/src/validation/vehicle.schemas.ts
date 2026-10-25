@@ -94,3 +94,17 @@ export const searchVehiclesSchema = z
   });
 
 export type SearchVehiclesInput = z.output<typeof searchVehiclesSchema>;
+
+const PURCHASE_QUANTITY_MESSAGE = 'quantity must be a positive whole number';
+
+/** POST /:id/purchase body: optional quantity (default 1), 1 up to the database integer limit. */
+export const purchaseSchema = z.object({
+  quantity: z
+    .number({ error: PURCHASE_QUANTITY_MESSAGE })
+    .int({ error: PURCHASE_QUANTITY_MESSAGE })
+    .positive({ error: PURCHASE_QUANTITY_MESSAGE })
+    .max(MAX_INT, { error: `quantity must be at most ${MAX_INT}` })
+    .default(1),
+});
+
+export type PurchaseInput = z.output<typeof purchaseSchema>;

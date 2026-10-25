@@ -1,6 +1,7 @@
 import { prisma } from '../lib/prisma';
 import type { Prisma, Vehicle } from '../generated/prisma/client';
-import { rethrowNotFound } from '../lib/prismaErrors';
+import { isRecordNotFound, rethrowNotFound } from '../lib/prismaErrors';
+import { HttpError } from '../errors/HttpError';
 import type { CreateVehicleInput, SearchVehiclesInput, UpdateVehicleInput } from '../validation/vehicle.schemas';
 
 const VEHICLE_NOT_FOUND = 'Vehicle not found';
@@ -56,4 +57,31 @@ export async function deleteVehicle(id: number): Promise<void> {
   } catch (error) {
     rethrowNotFound(error, VEHICLE_NOT_FOUND);
   }
+}
+
+/**
+ * Buys `quantity` units of a vehicle.
+ * The stock check and the decrease happen in ONE database statement
+ * ("decrease only if at least `quantity` are in stock"), so parallel buyers can never oversell.
+ * @throws HttpError 404 if the vehicle does not exist, 409 if there is not enough stock.
+ */
+export async function purchaseVehicle(id: number, quantity: number): Promise<Vehicle> {
+  try {
+    return await prisma.vehicle.update({
+      where: { id, quantity: { gte: quantity } },
+      data: { quantity: { decrement: quantity } },
+    });
+  } catch (error) {
+    if (!isRecordNotFound(error)) throw error;
+  }
+
+  // Nothing was updated: either the vehicle doesn't exist or there isn't enough stock.
+  const vehicle = await prisma.vehicle.findUnique({ where: { id } });
+  if (!vehicle) {
+    throw new HttpError(404, VEHICLE_NOT_FOUND);
+  }
+  throw new HttpError(
+    409,
+    vehicle.quantity === 0 ? 'Out of stock' : `Not enough stock: only ${vehicle.quantity} left`,
+  );
 }
