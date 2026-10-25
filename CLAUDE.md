@@ -28,7 +28,7 @@ Tests added for code that already exists and that **pass immediately** use `test
 ## Stack
 - Backend: Node 22 + TypeScript + Express 5, Prisma, PostgreSQL 16, jsonwebtoken + bcrypt, zod
 - Backend tests: Jest + Supertest (`--runInBand`, separate `dealership_test` DB, tables emptied before each test)
-- Frontend: Vite + React + TypeScript + Tailwind; tests: Vitest + React Testing Library
+- Frontend: Vite 8 + React 19 + TypeScript + Tailwind 4 (CSS-first `@theme` tokens); tests: Vitest + React Testing Library
 - DB: `docker-compose.yml` (Postgres 16, `dealership_dev` + `dealership_test`) locally; Neon in production
 - Coverage report: `npm run test:coverage` (text + HTML in `coverage/`)
 
@@ -81,6 +81,44 @@ Tests added for code that already exists and that **pass immediately** use `test
 - **No downward stock correction.** Quantity is locked out of PUT and restock only adds. If a stock-take finds fewer cars, an admin can only lower stock by "purchasing" the extra units (safe: single conditional UPDATE). Decided 2026-10-25 (option 1).
   - **Future improvement:** admin-only `POST /api/vehicles/:id/adjust` with `{ change: -2 }` — a relative, race-safe change that refuses to go below 0. Never "set quantity to N", which could overwrite a concurrent purchase.
 
+## Design system (frontend) — match `docs/design/` exactly
+Source of truth: `docs/design/yourGarage UI.html` (9 boards; `screens.pdf` is the same screens but its export dropped the background photos on some pages — follow the HTML). Tokens live in `frontend/src/styles/theme.css`; Tailwind's default colours, radii and shadows are disabled, so **only these named tokens exist**. Never hard-code a hex value in a component. If the design is unclear or can't be built as shown, **ask** — don't improvise.
+
+**Colours** (Tailwind name → hex → use)
+- `wall` #EDE3D4 page ground (under texture) · `card` #F7F1E7 cards, login card, dialogs · `paper` #FFFCF6 inputs, search panel, text on rust/navy
+- `orange` #F28A1E primary buttons · `orange-light` #F9C78F secondary buttons, stepper −/+ · `orange-burnt` #C4621A primary hover, focus ring, offset shadows
+- `ink` #111111 brand, text, borders
+- Accents (sparingly): `rust` #A3352B delete, errors, SOLD OUT · `navy` #34496E links, success/info banner · `label` #F2C230 strip labels + header sign only · `grease` #4A4137 muted text · `hairline` #D8CBB6 dividers · `photo` #E3D6C3 photo placeholder, skeleton
+
+**Fonts** (self-hosted via @fontsource): `font-display` Space Grotesk 500/700 — brand, headings, prices · `font-body` Archivo 400/500/600 — UI, body, forms · `font-mono` IBM Plex Mono 500/600 — strip labels.
+Brand "yourGarage": display 700, 46px desktop header (−1.5px tracking) / 32–34px mobile header / 48px login. Page h1 40px (−1px) desktop, 30px mobile. Card model 22px, price 24px (display 700).
+
+**Corners:** always sharp (`border-radius: 0`). No rounded anything.
+
+**Buttons** (height 44px, padding 0 18–20px, Archivo 15px, icon 18px + 8px gap, no border):
+- Primary: `bg-orange` text ink, 600; hover `bg-orange-burnt`. Big CTAs 48px tall, 16px.
+- Secondary: `bg-orange-light` text ink, 400.
+- Danger: `bg-rust` text **paper** (cream on rust — black fails contrast), 600.
+- Disabled primary ("Sold out"): transparent, `1px dashed grease`, text grease, 400, `cursor: not-allowed`.
+- Outline (header Log out): transparent, `1.5px solid ink`, height 40px. Mobile icon buttons: 44×44, `1.5px solid ink`.
+
+**Labels (yellow strip):** IBM Plex Mono 600, 12px, letter-spacing 1.2px, UPPERCASE, `bg-label` text ink, padding 4px 8px. Variants: SOLD OUT = `bg-rust` text paper; ONLY 1 LEFT = yellow + `1.5px solid ink`; ADMIN badge = `bg-ink` text label (11–12px, 1.2–1.5px tracking).
+
+**Cards (vehicle):** `bg-card`, `1.5px solid ink`, sharp. Photo area 180px (190px mobile) `bg-photo` with a 72px Lucide car icon (stroke 1, grease); category label top-left, SOLD OUT / ONLY 1 LEFT top-right (12px inset). Body padding 18/18/20 (16 mobile): make 13px grease 500, model h2; hairline top border before price row (price left, "N in stock"/"Out of stock" right, 13px grease); full-width Purchase button. Hover: `shadow-offset` (`shadow-offset-sm` mobile) + translate(−2px,−2px), 0.15s. Admin cards add a row under Purchase: `1px dashed hairline` top border, grid `1fr 1fr 44px` gap 8 — Edit (secondary), Restock (secondary), Delete icon-only (danger, aria-label "Delete {make} {model}").
+Login card: `bg-card`, `1.5px solid ink`, `shadow-offset` (sm on mobile), 440px wide, padding 36px (24/20 mobile). Dialogs: `bg-card`, `1.5px solid ink`, `shadow-dialog`, padding 28px; delete dialog adds `border-top: 6px solid rust`.
+
+**Inputs:** height 44px (46px on login/register), `1px solid ink`, `bg-paper`, padding 0 12px, Archivo 15px (16px on mobile). Error: `2px solid rust` + message row (13px, rust, 500, alert icon). Field label 13px, 500 (600 on auth/dialog forms), 6px gap.
+
+**Backgrounds:**
+- App pages (dashboard/admin/loading): `wall.jpg` texture, `background-size: cover`, `background-attachment: fixed`, under a `bg-wall/55` veil (gradient layer over the image), base colour `wall`.
+- Login/Register: `door_garage.jpg` full-bleed (`cover`, centred, `filter: blur(2px)`, inset −40px so blurred edges don't show), under a `bg-wall/60` veil.
+- Dialog backdrop: `bg-ink/45` over the page.
+- Header "sign": `bg-label` with `3px solid ink` bottom border; 84px tall desktop (content max-width 1312px, padding 0 32px), 68px mobile (padding 0 16px).
+- Success/info banner: `bg-navy` text paper, padding 14px 18px, check-circle icon, dismiss ✕ (desktop).
+
+**Icons:** Lucide (`lucide-react`): car, user, log-out, circle-check, x, search, funnel, shopping-cart, pencil, trash-2, circle-alert.
+**Prices:** `₹` with Indian grouping (`Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 })`).
+
 ## Phases & progress
 ### Phase 1 — Backend (TDD) ✅ complete
 - [x] 0. Setup + `GET /api/health`
@@ -98,7 +136,7 @@ Tests added for code that already exists and that **pass immediately** use `test
   - [x] startup env check · [x] JSON 400 malformed body · [x] JSON 404 unknown routes · [x] JSON 500 unexpected errors
   - [x] seed: `npm run db:seed` (src/seed/)
   - [x] coverage report → `docs/test-report-backend.md` (190 tests, 98.28% stmts / 94.44% branches)
-### Phase 2 — Frontend design (look & feel, pages, components)
+### Phase 2 — Frontend design ✅ complete (`docs/design/`; tokens in `frontend/src/styles/theme.css`)
 ### Phase 3 — Frontend build (TDD with Vitest + RTL)
 ### Phase 4 — Deployment (Neon Postgres + API host + frontend host)
 ### Phase 5 — README (setup, screenshots, "My AI Usage"), test report, PROMPTS.md
