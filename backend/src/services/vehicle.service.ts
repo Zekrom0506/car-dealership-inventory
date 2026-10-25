@@ -10,6 +10,15 @@ const VEHICLE_NOT_FOUND = 'Vehicle not found';
 /** Shared sort for every vehicle list: newest first; id breaks ties so the order is stable. */
 const NEWEST_FIRST: Prisma.VehicleOrderByWithRelationInput[] = [{ createdAt: 'desc' }, { id: 'desc' }];
 
+/** Loads a vehicle by id. @throws HttpError 404 if it does not exist. */
+async function findVehicleOrThrow(id: number): Promise<Vehicle> {
+  const vehicle = await prisma.vehicle.findUnique({ where: { id } });
+  if (!vehicle) {
+    throw new HttpError(404, VEHICLE_NOT_FOUND);
+  }
+  return vehicle;
+}
+
 /** Adds a new vehicle to the inventory. */
 export async function createVehicle(input: CreateVehicleInput): Promise<Vehicle> {
   return prisma.vehicle.create({ data: input });
@@ -76,11 +85,8 @@ export async function purchaseVehicle(id: number, quantity: number): Promise<Veh
     if (!isRecordNotFound(error)) throw error;
   }
 
-  // Nothing was updated: either the vehicle doesn't exist or there isn't enough stock.
-  const vehicle = await prisma.vehicle.findUnique({ where: { id } });
-  if (!vehicle) {
-    throw new HttpError(404, VEHICLE_NOT_FOUND);
-  }
+  // Nothing was updated: either the vehicle doesn't exist (404) or there isn't enough stock.
+  const vehicle = await findVehicleOrThrow(id);
   throw new HttpError(
     409,
     vehicle.quantity === 0 ? 'Out of stock' : `Not enough stock: only ${vehicle.quantity} left`,
@@ -103,10 +109,7 @@ export async function restockVehicle(id: number, quantity: number): Promise<Vehi
     if (!isRecordNotFound(error)) throw error;
   }
 
-  // Nothing was updated: either the vehicle doesn't exist or the stock would overflow.
-  const vehicle = await prisma.vehicle.findUnique({ where: { id } });
-  if (!vehicle) {
-    throw new HttpError(404, VEHICLE_NOT_FOUND);
-  }
+  // Nothing was updated: either the vehicle doesn't exist (404) or the stock would overflow.
+  await findVehicleOrThrow(id);
   throw new HttpError(400, `restock would exceed the maximum stock of ${MAX_INT}`);
 }
