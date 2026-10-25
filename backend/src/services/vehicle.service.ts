@@ -1,15 +1,18 @@
 import { prisma } from '../lib/prisma';
-import type { Vehicle } from '../generated/prisma/client';
+import type { Prisma, Vehicle } from '../generated/prisma/client';
 import type { CreateVehicleInput, SearchVehiclesInput } from '../validation/vehicle.schemas';
+
+/** Shared sort for every vehicle list: newest first; id breaks ties so the order is stable. */
+const NEWEST_FIRST: Prisma.VehicleOrderByWithRelationInput[] = [{ createdAt: 'desc' }, { id: 'desc' }];
 
 /** Adds a new vehicle to the inventory. */
 export async function createVehicle(input: CreateVehicleInput): Promise<Vehicle> {
   return prisma.vehicle.create({ data: input });
 }
 
-/** All vehicles (including sold-out ones), newest first; id breaks ties so the order is stable. */
+/** All vehicles, including sold-out ones, newest first. */
 export async function listVehicles(): Promise<Vehicle[]> {
-  return prisma.vehicle.findMany({ orderBy: [{ createdAt: 'desc' }, { id: 'desc' }] });
+  return prisma.vehicle.findMany({ orderBy: NEWEST_FIRST });
 }
 
 /**
@@ -24,6 +27,6 @@ export async function searchVehicles({ make, model, category, minPrice, maxPrice
       category,
       price: { gte: minPrice, lte: maxPrice },
     },
-    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+    orderBy: NEWEST_FIRST,
   });
 }
