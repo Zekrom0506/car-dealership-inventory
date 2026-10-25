@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ApiError } from '../api/client'
-import { createVehicle, listVehicles, NO_FILTERS, purchaseVehicle, searchVehicles, type NewVehicle, type Vehicle, type VehicleFilters } from '../api/vehicles'
+import { createVehicle, listVehicles, updateVehicle, NO_FILTERS, purchaseVehicle, searchVehicles, type NewVehicle, type Vehicle, type VehicleChanges, type VehicleFilters } from '../api/vehicles'
 import { useAuth } from '../auth/useAuth'
 import { AppLayout } from '../components/dashboard/AppLayout'
 import { FilterForm } from '../components/dashboard/FilterForm'
@@ -30,6 +30,7 @@ export function DashboardPage() {
   // A ref (not state) so a second click in the same instant is still blocked.
   const purchaseInProgress = useRef(false)
   const [adding, setAdding] = useState(false)
+  const [editing, setEditing] = useState<Vehicle | null>(null)
 
   const messageFrom = (e: unknown) => (e instanceof ApiError ? e.message : 'Something went wrong. Please try again.')
 
@@ -101,6 +102,21 @@ export function DashboardPage() {
     setAdding(false)
     setError(null)
     setSuccess(`Vehicle added. ${created.make} ${created.model} now has ${created.quantity} in stock.`)
+  }
+
+  async function saveEdit(original: Vehicle, body: NewVehicle) {
+    // Send only what changed; quantity is never editable here.
+    const changes: VehicleChanges = {}
+    for (const key of ['make', 'model', 'category', 'price', 'imageUrl'] as const) {
+      if (body[key] !== original[key]) Object.assign(changes, { [key]: body[key] })
+    }
+    if (Object.keys(changes).length > 0) {
+      const updated = await updateVehicle(original.id, changes)
+      setVehicles((list) => list?.map((v) => (v.id === updated.id ? updated : v)) ?? null)
+      setError(null)
+      setSuccess(`Vehicle updated. ${updated.make} ${updated.model} has been saved.`)
+    }
+    setEditing(null)
   }
 
   async function clearFilters() {
@@ -188,9 +204,14 @@ export function DashboardPage() {
       {vehicles && vehicles.length > 0 && (
         <div className={GRID}>
           {vehicles.map((v) => (
-            <VehicleCard key={v.id} vehicle={v} onPurchase={() => purchase(v)} purchasing={purchasingId === v.id} />
+            <VehicleCard key={v.id} vehicle={v} onPurchase={() => purchase(v)} purchasing={purchasingId === v.id}
+              onEdit={isAdmin ? () => setEditing(v) : undefined}
+            />
           ))}
         </div>
+      )}
+      {editing && (
+        <VehicleFormDialog mode="edit" vehicle={editing} onSave={(body) => saveEdit(editing, body)} onClose={() => setEditing(null)} />
       )}
       {adding && <VehicleFormDialog mode="add" onSave={addVehicle} onClose={() => setAdding(false)} />}
     </AppLayout>

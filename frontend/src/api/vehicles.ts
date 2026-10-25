@@ -67,3 +67,12 @@ export async function createVehicle(body: NewVehicle): Promise<Vehicle> {
   const { vehicle } = await apiRequest<{ vehicle: Vehicle }>('/vehicles', { method: 'POST', body })
   return vehicle
 }
+
+/** PUT body: any of the editable fields (quantity is never sent; imageUrl null removes the photo). */
+export type VehicleChanges = Partial<Omit<NewVehicle, 'quantity'>>
+
+/** PUT /api/vehicles/:id (admin) — returns the updated vehicle. */
+export async function updateVehicle(id: number, changes: VehicleChanges): Promise<Vehicle> {
+  const { vehicle } = await apiRequest<{ vehicle: Vehicle }>(`/vehicles/${id}`, { method: 'PUT', body: changes })
+  return vehicle
+}
