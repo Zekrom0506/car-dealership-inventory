@@ -1,6 +1,7 @@
 import { prisma } from '../lib/prisma';
-import type { Prisma, Vehicle } from '../generated/prisma/client';
-import type { CreateVehicleInput, SearchVehiclesInput } from '../validation/vehicle.schemas';
+import { Prisma, type Vehicle } from '../generated/prisma/client';
+import { HttpError } from '../errors/HttpError';
+import type { CreateVehicleInput, SearchVehiclesInput, UpdateVehicleInput } from '../validation/vehicle.schemas';
 
 /** Shared sort for every vehicle list: newest first; id breaks ties so the order is stable. */
 const NEWEST_FIRST: Prisma.VehicleOrderByWithRelationInput[] = [{ createdAt: 'desc' }, { id: 'desc' }];
@@ -29,4 +30,20 @@ export async function searchVehicles({ make, model, category, minPrice, maxPrice
     },
     orderBy: NEWEST_FIRST,
   });
+}
+
+/**
+ * Changes the given fields of a vehicle.
+ * @throws HttpError 404 if no vehicle has that id.
+ */
+export async function updateVehicle(id: number, fields: UpdateVehicleInput): Promise<Vehicle> {
+  try {
+    return await prisma.vehicle.update({ where: { id }, data: fields });
+  } catch (error) {
+    // P2025 = "record to update not found"
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      throw new HttpError(404, 'Vehicle not found');
+    }
+    throw error;
+  }
 }

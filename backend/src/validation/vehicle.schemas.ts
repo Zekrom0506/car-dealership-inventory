@@ -13,15 +13,18 @@ const categoryField = z.enum(CATEGORIES, {
     issue.input === undefined ? 'category is required' : `category must be one of: ${CATEGORIES.join(', ')}`,
 });
 
+/** Whole-number price from 1 up to the database integer limit. */
+const priceField = z
+  .number({ error: (issue) => (issue.input === undefined ? 'price is required' : PRICE_MESSAGE) })
+  .int({ error: PRICE_MESSAGE })
+  .positive({ error: PRICE_MESSAGE })
+  .max(MAX_INT, { error: `price must be at most ${MAX_INT}` });
+
 export const createVehicleSchema = z.object({
   make: nonEmptyText('make'),
   model: nonEmptyText('model'),
   category: categoryField,
-  price: z
-    .number({ error: (issue) => (issue.input === undefined ? 'price is required' : PRICE_MESSAGE) })
-    .int({ error: PRICE_MESSAGE })
-    .positive({ error: PRICE_MESSAGE })
-    .max(MAX_INT, { error: `price must be at most ${MAX_INT}` }),
+  price: priceField,
   quantity: z
     .number({ error: (issue) => (issue.input === undefined ? 'quantity is required' : QUANTITY_MESSAGE) })
     .int({ error: QUANTITY_MESSAGE })
@@ -30,6 +33,34 @@ export const createVehicleSchema = z.object({
 });
 
 export type CreateVehicleInput = z.output<typeof createVehicleSchema>;
+
+const ID_MESSAGE = 'id must be a positive whole number';
+
+/** The :id route parameter: digits only, starting 1–9, within the database integer limit. */
+export const vehicleIdSchema = z
+  .string()
+  .regex(/^[1-9]\d*$/, { error: ID_MESSAGE })
+  .transform(Number)
+  .pipe(z.number().max(MAX_INT, { error: ID_MESSAGE }));
+
+/**
+ * PUT body: any subset of make/model/category/price.
+ * quantity is rejected (stock changes only via purchase/restock); unknown fields are dropped.
+ */
+export const updateVehicleSchema = z
+  .object({
+    quantity: z.never({ error: 'quantity cannot be changed here; use purchase or restock' }).optional(),
+    make: nonEmptyText('make').optional(),
+    model: nonEmptyText('model').optional(),
+    category: categoryField.optional(),
+    price: priceField.optional(),
+  })
+  .transform(({ quantity: _quantity, ...fields }) => fields)
+  .refine((fields) => Object.values(fields).some((value) => value !== undefined), {
+    error: 'provide at least one field to update: make, model, category, price',
+  });
+
+export type UpdateVehicleInput = z.output<typeof updateVehicleSchema>;
 
 /** Query-string values arrive as text; a blank value counts as "not given". */
 const blankToUndefined = (value: unknown) =>
