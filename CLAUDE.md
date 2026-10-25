@@ -57,6 +57,7 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 21a. PUT is a partial update of make/model/category/price (same rules as create); empty body → 400. `quantity` in the body → 400 `quantity cannot be changed here; use purchase or restock` (avoids an edit form overwriting a concurrent purchase). Unknown vehicle → 404 `Vehicle not found`. Check order: auth → admin → id → body → exists.
 21b. Startup: `assertRequiredEnv()` (config/env.ts) — server exits with code 1 and `Missing required environment variable: NAME` if `JWT_SECRET` or `DATABASE_URL` is missing/blank.
 21c. Every error response is JSON `{ error }`: malformed body → 400 `Request body must be valid JSON`; no route matched (any path/method) → 404 `Not found` (404, not 405); anything unexpected → 500 `Internal server error`, real error logged with `console.error` only (no details/stack to the client).
+21d. Seed (`npm run db:seed`, `src/seed/`): upserts admin from `ADMIN_EMAIL` (normalised via `normalizeEmail`) + `ADMIN_PASSWORD` (≥ 8 chars). Every run sets role ADMIN **and resets the password** to `.env` (`.env` is the single source of truth; a pre-registered USER with that email is promoted and loses their old password). Invalid config → throws, writes nothing, script exits 1. Adds 12 rupee-priced sample vehicles (`sampleVehicles.ts`: all 7 categories, 2 sold out, 1 with one left) **only if the vehicles table is empty**.
 22. Changing what the user sees (messages, status codes) is a behaviour change → its own RED/GREEN cycle, never part of REFACTOR.
 
 ## Schema
@@ -67,7 +68,7 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 - Layers: `routes/` → `controllers/` (HTTP only) → `services/` (business rules) → Prisma. Input rules in `validation/*.schemas.ts` (shared field helpers + `MAX_INT` in `validation/fields.ts`), parsed with `parseOrThrow`.
 - Throw `HttpError(status, message)`; `middleware/errorHandler.ts` sends `{ error }`. Non-HttpErrors go to Express's default handler.
 - Prisma "record not found" (P2025) → 404 via `rethrowNotFound()` in `src/lib/prismaErrors.ts`; controllers read `:id` via `vehicleIdFrom(req)`.
-- Read environment variables only through `src/config/env.ts`; all JWT code lives in `src/lib/jwt.ts`.
+- Read environment variables only through `src/config/env.ts`; all JWT code lives in `src/lib/jwt.ts`; all bcrypt code in `src/lib/password.ts` (`hashPassword`/`verifyPassword`). `blankToUndefined` lives in `validation/fields.ts`.
 - Prisma 7 client is generated into `src/generated/prisma` (git-ignored). `npm install` and `npm run db:migrate` regenerate it; after pulling a schema change run `npm run db:generate`.
 - Category list comes from the Prisma `Category` enum (`src/generated/prisma/enums`) — one source of truth.
 - Claude's sandbox runs tests via `~/pg-sandbox/with-pg.sh npm test` (starts Postgres 16.14 for one command). Claude can't commit in the user's folder; delete permission was granted (needed for `prisma generate`) — delete only when a tool needs it or the user asks.
@@ -94,7 +95,7 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 - [x] 10. POST /api/vehicles/:id/restock (single conditional UPDATE)
 - [ ] 11. Admin seed script + coverage check
   - [x] startup env check · [x] JSON 400 malformed body · [x] JSON 404 unknown routes · [x] JSON 500 unexpected errors
-  - [ ] seed: admin (refuse if ADMIN_PASSWORD missing or < 8 chars; idempotent; promote existing USER) + ~12 sample vehicles only if table empty
+  - [x] seed: `npm run db:seed` (src/seed/)
   - [ ] coverage report
 ### Phase 2 — Frontend design (look & feel, pages, components)
 ### Phase 3 — Frontend build (TDD with Vitest + RTL)
