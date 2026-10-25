@@ -84,13 +84,13 @@ describe('POST /api/vehicles/:id/purchase', () => {
     expect(await stockOf(vehicle.id)).toBe(2);
   });
 
-  it('returns 409 for a sold-out vehicle', async () => {
+  it('returns 409 "Out of stock" for a sold-out vehicle (e.g. someone else bought the last one)', async () => {
     const vehicle = await createVehicleRecord({ quantity: 0 });
 
     const response = await purchase(vehicle.id);
 
     expect(response.status).toBe(409);
-    expect(response.body).toEqual({ error: 'Not enough stock: only 0 left' });
+    expect(response.body).toEqual({ error: 'Out of stock' });
     expect(await stockOf(vehicle.id)).toBe(0);
   });
 
