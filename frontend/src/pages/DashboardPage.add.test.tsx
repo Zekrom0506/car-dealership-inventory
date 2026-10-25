@@ -56,6 +56,7 @@ describe('DashboardPage — add vehicle (admin)', () => {
     ])
     expect(d.getByLabelText('Price (₹)')).toBeInTheDocument()
     expect(d.getByLabelText('Quantity')).toHaveAccessibleDescription('Only when adding')
+    expect(d.getByLabelText('Photo URL (optional)')).toBeInTheDocument()
 
     await userEvent.click(d.getByRole('button', { name: 'Cancel' }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
@@ -66,6 +67,7 @@ describe('DashboardPage — add vehicle (admin)', () => {
     ['price is 0', { 'Price (₹)': '0' }, { 'Price (₹)': 'Price must be above ₹0' }],
     ['price has decimals', { 'Price (₹)': '99.5' }, { 'Price (₹)': 'Price must be a whole number' }],
     ['quantity is negative', { Quantity: '-1' }, { Quantity: 'Quantity must be a whole number of 0 or more' }],
+    ['the photo URL is not a link or /path', { 'Photo URL (optional)': 'ftp://x' }, { 'Photo URL (optional)': 'Photo URL must be a link (https://…) or a path starting with /' }],
   ])('shows errors and sends nothing when %s', async (_case, typed: Record<string, string>, expected: Record<string, string>) => {
     const fetchMock = fakeFetch(jsonResponse(200, { vehicles: [city] }))
     renderDashboard()
@@ -97,7 +99,26 @@ describe('DashboardPage — add vehicle (admin)', () => {
     const request = requestAt(fetchMock, 1)
     expect(request.url).toBe('/api/vehicles')
     expect(request.method).toBe('POST')
-    expect(request.body).toEqual({ make: 'Tata', model: 'Nexon', category: 'SUV', price: 900000, quantity: 4 })
+    expect(request.body).toEqual({ make: 'Tata', model: 'Nexon', category: 'SUV', price: 900000, quantity: 4, imageUrl: null })
+  })
+
+  it.each([
+    ['a full link', ' https://images.pexels.com/photos/1/nexon.jpg ', 'https://images.pexels.com/photos/1/nexon.jpg'],
+    ['a site path', ' /cars/tata-nexon.jpg', '/cars/tata-nexon.jpg'],
+  ])('sends the photo URL trimmed when it is %s', async (_case, typed, sent) => {
+    const fetchMock = fakeFetch(jsonResponse(200, { vehicles: [city] }), jsonResponse(201, { vehicle: { ...nexon, imageUrl: sent } }))
+    renderDashboard()
+    const d = await openDialog()
+
+    await userEvent.type(d.getByLabelText('Make'), 'Tata')
+    await userEvent.type(d.getByLabelText('Model'), 'Nexon')
+    await userEvent.type(d.getByLabelText('Price (₹)'), '900000')
+    await userEvent.type(d.getByLabelText('Quantity'), '4')
+    await userEvent.type(d.getByLabelText('Photo URL (optional)'), typed)
+    await userEvent.click(d.getByRole('button', { name: 'Save vehicle' }))
+
+    await screen.findByRole('status')
+    expect(requestAt(fetchMock, 1).body).toMatchObject({ imageUrl: sent })
   })
 
   it('keeps the dialog open and shows the server’s message when saving fails', async () => {
