@@ -162,7 +162,7 @@ Login card: `bg-card`, `1.5px solid ink`, `shadow-offset` (sm on mobile), 440px 
 - [x] 2. API client (`src/api/client.ts`) + auth state (`AuthProvider` / `useAuth`; register auto-logs in; 401 with a token → logout)
 - [x] 3. Log in + Register pages (shared submit logic: `src/hooks/useSubmitAction.ts`)
 - [x] 4. Routing + guards (`src/AppRoutes.tsx`: RequireAuth, GuestOnly, unknown paths → `/`; wired in `App.tsx`)
-- [ ] 4a. **Backend:** optional `imageUrl` on vehicles (decision 23), RED/GREEN; then seed sets it for the 12 sample cars
+- [x] 4a. **Backend:** optional `imageUrl` on vehicles (decision 23), RED/GREEN; then seed sets it for the 12 sample cars
 - [ ] 5. Dashboard header (brand sign, user email, ADMIN badge, **Log out** button → clears session → /login) + list (skeleton, card states with photo or car-icon placeholder — photo uses `object-cover` in one fixed ratio for every card; if `imageUrl` is null **or the image fails to load** (onError), show the placeholder instead, Sold out disabled, Only 1 left, "Showing X of Y")
 - [ ] 6a. **Backend:** `q` search parameter (make OR model), its own RED/GREEN cycle
 - [ ] 6b. Search + filter (desktop form, mobile box/chips/panel, empty state, Clear all filters)
