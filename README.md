@@ -162,10 +162,36 @@ The backend report was generated before the image URL and `q` search features we
 
 ## My AI Usage
 
-<!-- ============================================================
-     PLACEHOLDER — Utkarsh will paste the "My AI Usage" draft here.
-     ============================================================ -->
+### Tools used
+- **Claude (claude.ai), two chats:** the first for planning and building the backend, the second for the frontend, README and test reports. Chat links are in `PROMPTS.md`.
+- **Claude Design:** for the frontend look and layout (cream wall, orange buttons, rust-red danger actions). I used one palette photo as a colour reference only, and exported the design (HTML and PDF) into `docs/design/`.
 
-_To be added._
+### How I used them
+- **Planning first.** I asked Claude for a stack, folder structure, schema and build order before any code, then reviewed it and made the open decisions myself.
+- **Strict Red-Green-Refactor.** Claude wrote failing tests first and showed the failing output before any implementation. I ran the commits myself, so the history shows `[RED]`, `[GREEN]` and `[REFACTOR]` tags in the commit bodies. Tests written after the code, for coverage only, are tagged `[COVERAGE]` so the history stays honest.
+- **Claude ran the tests in its own sandbox,** and I re-ran them on my Mac (Docker + PostgreSQL 16) at the end of each feature.
+- **Design to code.** I iterated on the design in Claude Design, then had Claude record the palette, fonts and button styles in `CLAUDE.md` and as Tailwind theme tokens before building any screen.
+- **`CLAUDE.md` as shared memory.** It holds the plan, decisions and working rules, so I could continue in a fresh chat without losing context.
+
+### Decisions I made or changed
+- **PostgreSQL from the start** (Docker locally, Neon planned for production) so tests and deployment behave the same.
+- **Email normalisation** (trim and lowercase) in one shared helper, so register, login and the seed agree.
+- **Error-message changes kept out of refactors,** and done as their own RED/GREEN cycle, since they change visible behaviour.
+- **Quantity can't be changed through PUT.** Stock changes only through purchase and restock, which avoids overwriting a sale made while an admin edits.
+- **Role read from the database on every request,** so a demoted admin loses access immediately.
+- **No crashes from odd input:** maximum values for price, quantity and image URLs; JSON errors for malformed bodies, unknown routes and unexpected failures, with no internal details or stack traces leaked.
+- **Seed script resets the admin password** from `.env`, so nobody can take over the admin email by registering it first.
+- **"Out of stock" message** when buying a sold-out car, and a list reload after a failed purchase, for two people buying the last car.
+- **Search `q` parameter, optional `imageUrl`** (with `null` clearing it) and an empty-inventory message, added as separate test-first cycles.
+- **Admin edit form** reuses the add form and sends only changed fields.
+
+### Mistakes I caught and corrected
+- An early commit used `git add backend/src`, which pulled a later change into the wrong commit. I kept the history as it is and switched to exact file paths in every `git add`.
+- Some commits were missing the `Co-authored-by` trailer. I asked for it on every commit.
+- Claude sometimes moved on to GREEN without showing the failing RED output, or said a file was updated when it wasn't. I made showing RED output a standing rule in `CLAUDE.md` and checked the files myself.
+- Claude's commit commands assumed a working directory, so I started each block with `cd` to the project root.
+
+### Reflection
+AI sped up the repetitive parts: boilerplate, test cases, and checking edge cases like race conditions on purchase. It worked best when I gave small, specific tasks with the reasons behind the rules. It needed supervision: it made small mistakes in git handling and process, and I had to read the tests as carefully as the code. I made the design and trade-off decisions, and I can explain every endpoint, test and commit.
 
 The full conversations are linked in [PROMPTS.md](PROMPTS.md).
