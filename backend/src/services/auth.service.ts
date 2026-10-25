@@ -1,12 +1,9 @@
-import bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma';
 import { HttpError } from '../errors/HttpError';
 import { signToken } from '../lib/jwt';
+import { hashPassword, verifyPassword } from '../lib/password';
 import type { User } from '../generated/prisma/client';
 import type { LoginInput, RegisterInput } from '../validation/auth.schemas';
-
-/** Cost factor for bcrypt: higher is slower to brute-force (and slower to compute). */
-export const BCRYPT_ROUNDS = 10;
 
 /** The user fields that are safe to send to clients (never the password hash). */
 export type PublicUser = Pick<User, 'id' | 'email' | 'role' | 'createdAt'>;
@@ -25,7 +22,7 @@ export async function registerUser({ email, password }: RegisterInput): Promise<
     throw new HttpError(409, 'Email is already registered');
   }
 
-  const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+  const passwordHash = await hashPassword(password);
   const user = await prisma.user.create({ data: { email, passwordHash } });
   return toPublicUser(user);
 }
@@ -36,7 +33,7 @@ export async function registerUser({ email, password }: RegisterInput): Promise<
  */
 export async function loginUser({ email, password }: LoginInput): Promise<{ token: string; user: PublicUser }> {
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
+  if (!user || !(await verifyPassword(password, user.passwordHash))) {
     throw new HttpError(401, 'Invalid email or password');
   }
 

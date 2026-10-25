@@ -1,9 +1,8 @@
-import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma';
-import { BCRYPT_ROUNDS } from '../services/auth.service';
+import { hashPassword } from '../lib/password';
 import { normalizeEmail } from '../utils/normalizeEmail';
-import { requiredString } from '../validation/fields';
+import { blankToUndefined, requiredString } from '../validation/fields';
 import { SAMPLE_VEHICLES } from './sampleVehicles';
 
 /** Values the admin seed reads (passed in explicitly so tests don't touch process.env). */
@@ -12,14 +11,11 @@ export interface AdminSeedEnv {
   ADMIN_PASSWORD?: string;
 }
 
-/** A blank password counts as missing. Passwords are never trimmed otherwise. */
-const blankToUndefined = (value: unknown) =>
-  typeof value === 'string' && value.trim() === '' ? undefined : value;
-
 const adminSeedSchema = z.object({
   ADMIN_EMAIL: requiredString('ADMIN_EMAIL')
     .transform(normalizeEmail)
     .pipe(z.email({ error: 'ADMIN_EMAIL must be a valid email address' })),
+  // A blank password counts as missing; passwords are never trimmed otherwise.
   ADMIN_PASSWORD: z.preprocess(
     blankToUndefined,
     requiredString('ADMIN_PASSWORD').min(8, { error: 'ADMIN_PASSWORD must be at least 8 characters' }),
@@ -40,7 +36,7 @@ export async function seedAdmin(env: AdminSeedEnv): Promise<string> {
   }
   const { ADMIN_EMAIL: email, ADMIN_PASSWORD: password } = result.data;
 
-  const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+  const passwordHash = await hashPassword(password);
   await prisma.user.upsert({
     where: { email },
     create: { email, passwordHash, role: 'ADMIN' },

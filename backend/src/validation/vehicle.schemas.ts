@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { Category } from '../generated/prisma/enums';
-import { MAX_INT, nonEmptyText } from './fields';
+import { MAX_INT, blankToUndefined, nonEmptyText } from './fields';
 
 const CATEGORIES = Object.values(Category);
 
@@ -61,10 +61,6 @@ export const updateVehicleSchema = z
   });
 
 export type UpdateVehicleInput = z.output<typeof updateVehicleSchema>;
-
-/** Query-string values arrive as text; a blank value counts as "not given". */
-const blankToUndefined = (value: unknown) =>
-  typeof value === 'string' && value.trim() === '' ? undefined : value;
 
 /** Optional whole-number price filter from the query string, e.g. "20000". */
 const priceFilter = (field: string) => {
