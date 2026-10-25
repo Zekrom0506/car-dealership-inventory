@@ -23,6 +23,7 @@ test: add failing tests for user registration
 Co-authored-by: Claude <claude@users.noreply.github.com>
 ```
 `test:` = [RED], `feat:` = [GREEN], `refactor:` = [REFACTOR]. Setup/docs use `chore:`/`docs:` with no tag.
+Tests added for code that already exists and that **pass immediately** use `test:` with **[COVERAGE]**, never [RED] — only tag [RED] if the test actually failed first. Prove such tests can fail by temporarily breaking the code (then restore it).
 
 ## Stack
 - Backend: Node 22 + TypeScript + Express 5, Prisma, PostgreSQL 16, jsonwebtoken + bcrypt, zod
@@ -81,7 +82,7 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
   - **Future improvement:** admin-only `POST /api/vehicles/:id/adjust` with `{ change: -2 }` — a relative, race-safe change that refuses to go below 0. Never "set quantity to N", which could overwrite a concurrent purchase.
 
 ## Phases & progress
-### Phase 1 — Backend (TDD)
+### Phase 1 — Backend (TDD) ✅ complete
 - [x] 0. Setup + `GET /api/health`
 - [x] 1. Register
 - [x] 2. Login
@@ -93,10 +94,10 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 - [x] 8. DELETE /api/vehicles/:id (204; 404 when already deleted)
 - [x] 9. POST /api/vehicles/:id/purchase (single conditional UPDATE, DB CHECK constraints)
 - [x] 10. POST /api/vehicles/:id/restock (single conditional UPDATE)
-- [ ] 11. Admin seed script + coverage check
+- [x] 11. Admin seed script + coverage check
   - [x] startup env check · [x] JSON 400 malformed body · [x] JSON 404 unknown routes · [x] JSON 500 unexpected errors
   - [x] seed: `npm run db:seed` (src/seed/)
-  - [ ] coverage report
+  - [x] coverage report → `docs/test-report-backend.md` (190 tests, 98.28% stmts / 94.44% branches)
 ### Phase 2 — Frontend design (look & feel, pages, components)
 ### Phase 3 — Frontend build (TDD with Vitest + RTL)
 ### Phase 4 — Deployment (Neon Postgres + API host + frontend host)
