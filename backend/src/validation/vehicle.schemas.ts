@@ -108,3 +108,16 @@ export const purchaseSchema = z.object({
 });
 
 export type PurchaseInput = z.output<typeof purchaseSchema>;
+
+/** POST /:id/restock body: required quantity, 1 up to the database integer limit. */
+export const restockSchema = z.object({
+  quantity: z
+    .number({
+      error: (issue) => (issue.input === undefined ? 'quantity is required' : PURCHASE_QUANTITY_MESSAGE),
+    })
+    .int({ error: PURCHASE_QUANTITY_MESSAGE })
+    .positive({ error: PURCHASE_QUANTITY_MESSAGE })
+    .max(MAX_INT, { error: `quantity must be at most ${MAX_INT}` }),
+});
+
+export type RestockInput = z.output<typeof restockSchema>;

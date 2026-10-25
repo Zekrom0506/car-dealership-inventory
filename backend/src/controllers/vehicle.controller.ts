@@ -3,6 +3,7 @@ import { parseOrThrow } from '../validation/parse';
 import {
   createVehicleSchema,
   purchaseSchema,
+  restockSchema,
   searchVehiclesSchema,
   updateVehicleSchema,
   vehicleIdSchema,
@@ -12,6 +13,7 @@ import {
   deleteVehicle,
   listVehicles,
   purchaseVehicle,
+  restockVehicle,
   searchVehicles,
   updateVehicle,
 } from '../services/vehicle.service';
@@ -60,5 +62,13 @@ export async function purchase(req: Request, res: Response): Promise<void> {
   // No body at all means "buy 1".
   const { quantity } = parseOrThrow(purchaseSchema, req.body ?? {});
   const vehicle = await purchaseVehicle(id, quantity);
+  res.status(200).json({ vehicle });
+}
+
+/** POST /api/vehicles/:id/restock — admin only. Returns 200 with the updated { vehicle }. */
+export async function restock(req: Request, res: Response): Promise<void> {
+  const id = vehicleIdFrom(req);
+  const { quantity } = parseOrThrow(restockSchema, req.body ?? {});
+  const vehicle = await restockVehicle(id, quantity);
   res.status(200).json({ vehicle });
 }

@@ -2,6 +2,7 @@ import { prisma } from '../lib/prisma';
 import type { Prisma, Vehicle } from '../generated/prisma/client';
 import { isRecordNotFound, rethrowNotFound } from '../lib/prismaErrors';
 import { HttpError } from '../errors/HttpError';
+import { MAX_INT } from '../validation/fields';
 import type { CreateVehicleInput, SearchVehiclesInput, UpdateVehicleInput } from '../validation/vehicle.schemas';
 
 const VEHICLE_NOT_FOUND = 'Vehicle not found';
@@ -84,4 +85,28 @@ export async function purchaseVehicle(id: number, quantity: number): Promise<Veh
     409,
     vehicle.quantity === 0 ? 'Out of stock' : `Not enough stock: only ${vehicle.quantity} left`,
   );
+}
+
+/**
+ * Adds `quantity` units to a vehicle's stock (admin only).
+ * The limit check and the increase happen in ONE database statement, so parallel
+ * restocks and purchases never lose units.
+ * @throws HttpError 404 if the vehicle does not exist, 400 if the stock would exceed MAX_INT.
+ */
+export async function restockVehicle(id: number, quantity: number): Promise<Vehicle> {
+  try {
+    return await prisma.vehicle.update({
+      where: { id, quantity: { lte: MAX_INT - quantity } },
+      data: { quantity: { increment: quantity } },
+    });
+  } catch (error) {
+    if (!isRecordNotFound(error)) throw error;
+  }
+
+  // Nothing was updated: either the vehicle doesn't exist or the stock would overflow.
+  const vehicle = await prisma.vehicle.findUnique({ where: { id } });
+  if (!vehicle) {
+    throw new HttpError(404, VEHICLE_NOT_FOUND);
+  }
+  throw new HttpError(400, `restock would exceed the maximum stock of ${MAX_INT}`);
 }
