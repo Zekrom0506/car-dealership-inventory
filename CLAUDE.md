@@ -166,7 +166,7 @@ Login card: `bg-card`, `1.5px solid ink`, `shadow-offset` (sm on mobile), 440px 
 - [ ] 5. Dashboard header (brand sign, user email, ADMIN badge, **Log out** button → clears session → /login) + list (skeleton, card states with photo or car-icon placeholder — photo uses `object-cover` in one fixed ratio for every card; if `imageUrl` is null **or the image fails to load** (onError), show the placeholder instead, Sold out disabled, Only 1 left, "Showing X of Y")
 - [x] 6a. **Backend:** `q` search parameter (make OR model), its own RED/GREEN cycle
 - [x] 6b. Search + filter (desktop form, empty state, Clear all filters)
-- [ ] 7. Purchase flow (banner, stock update, 409 error, no double-submit)
+- [x] 7. Purchase flow (banner, stock update, 409 error, no double-submit)
 - [ ] 8. Admin (role-gated UI, Add/Edit dialog, Restock stepper, Delete confirm)
 - [ ] 9. Mobile layout (search box → `q`, category chips, Filter panel), account menu, dialog a11y (Esc, focus trap), screenshots
 ### Phase 4 — Deployment (Neon Postgres + API host + frontend host)
