@@ -19,6 +19,13 @@ export const env = {
   get adminPassword(): string | undefined {
     return process.env.ADMIN_PASSWORD;
   },
+  /** Browser origins allowed to call the API (CORS): comma-separated, e.g. "https://app.vercel.app". Unset = none. */
+  get frontendOrigins(): string[] {
+    return (process.env.FRONTEND_ORIGIN ?? '')
+      .split(',')
+      .map((origin) => origin.trim().replace(/\/+$/, ''))
+      .filter(Boolean);
+  },
   /** How long a login token stays valid, e.g. "1h" or "30m". */
   get jwtExpiresIn(): string {
     return process.env.JWT_EXPIRES_IN ?? '1h';

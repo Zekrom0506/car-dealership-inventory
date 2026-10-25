@@ -1,6 +1,7 @@
 import express, { Express } from 'express';
 import { authRouter } from './routes/auth.routes';
 import { vehiclesRouter } from './routes/vehicles.routes';
+import { cors } from './middleware/cors';
 import { errorHandler } from './middleware/errorHandler';
 import { notFoundHandler } from './middleware/notFound';
 
@@ -10,6 +11,7 @@ import { notFoundHandler } from './middleware/notFound';
  */
 export function createApp(): Express {
   const app = express();
+  app.use(cors);
   app.use(express.json());
 
   // Lightweight liveness check used by tests, Docker and the hosting platform.
