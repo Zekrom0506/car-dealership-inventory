@@ -1,8 +1,9 @@
 import bcrypt from 'bcryptjs';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { prisma } from '../lib/prisma';
 import { HttpError } from '../errors/HttpError';
 import type { User } from '../generated/prisma/client';
-import type { RegisterInput } from '../validation/auth.schemas';
+import type { LoginInput, RegisterInput } from '../validation/auth.schemas';
 
 /** Cost factor for bcrypt: higher is slower to brute-force (and slower to compute). */
 const BCRYPT_ROUNDS = 10;
@@ -27,4 +28,21 @@ export async function registerUser({ email, password }: RegisterInput): Promise<
   const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
   const user = await prisma.user.create({ data: { email, passwordHash } });
   return toPublicUser(user);
+}
+
+/**
+ * Checks credentials and issues a JWT.
+ * @throws HttpError 401 if the email is unknown or the password is wrong (same message for both).
+ */
+export async function loginUser({ email, password }: LoginInput): Promise<{ token: string; user: PublicUser }> {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
+    throw new HttpError(401, 'Invalid email or password');
+  }
+
+  const token = jwt.sign({ role: user.role }, process.env.JWT_SECRET!, {
+    subject: String(user.id),
+    expiresIn: (process.env.JWT_EXPIRES_IN ?? '1h') as SignOptions['expiresIn'],
+  });
+  return { token, user: toPublicUser(user) };
 }

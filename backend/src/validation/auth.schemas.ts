@@ -18,3 +18,11 @@ export const registerSchema = z.object({
 });
 
 export type RegisterInput = z.output<typeof registerSchema>;
+
+/** Login only checks the password is present; length rules apply at registration. */
+export const loginSchema = z.object({
+  email: emailField,
+  password: requiredString('password'),
+});
+
+export type LoginInput = z.output<typeof loginSchema>;
