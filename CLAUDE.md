@@ -61,6 +61,7 @@ Tests added for code that already exists and that **pass immediately** use `test
 21c. Every error response is JSON `{ error }`: malformed body → 400 `Request body must be valid JSON`; no route matched (any path/method) → 404 `Not found` (404, not 405); anything unexpected → 500 `Internal server error`, real error logged with `console.error` only (no details/stack to the client).
 21d. Seed (`npm run db:seed`, `src/seed/`): upserts admin from `ADMIN_EMAIL` (normalised via `normalizeEmail`) + `ADMIN_PASSWORD` (≥ 8 chars). Every run sets role ADMIN **and resets the password** to `.env` (`.env` is the single source of truth; a pre-registered USER with that email is promoted and loses their old password). Invalid config → throws, writes nothing, script exits 1. Adds 12 rupee-priced sample vehicles (`sampleVehicles.ts`: all 7 categories, 2 sold out, 1 with one left) **only if the vehicles table is empty**.
 22. Changing what the user sees (messages, status codes) is a behaviour change → its own RED/GREEN cycle, never part of REFACTOR.
+23. Vehicle `imageUrl` (optional, nullable, agreed 2026-10-25): create + PUT accept it; trimmed; must be an `http(s)://` URL or a site path starting with a single `/` (so `/cars/honda-city.jpg` works; `javascript:`, `ftp:`, `//host` rejected) → 400 `imageUrl must be an http(s) URL or a path starting with /`; max 2048 chars → 400 `imageUrl must be at most 2048 characters`. Missing/null on create = no image. On PUT: `null` clears it, leaving it out keeps it. Seed photos live in `frontend/public/cars/<make>-<model>.jpg` (lowercase, spaces → `-`). Frontend shows the car-icon placeholder when there's no image or it fails to load.
 
 ## Schema
 - **User:** id (int), email (unique), passwordHash, role (`USER`|`ADMIN`, default `USER`), createdAt
@@ -161,7 +162,8 @@ Login card: `bg-card`, `1.5px solid ink`, `shadow-offset` (sm on mobile), 440px 
 - [x] 2. API client (`src/api/client.ts`) + auth state (`AuthProvider` / `useAuth`; register auto-logs in; 401 with a token → logout)
 - [x] 3. Log in + Register pages (shared submit logic: `src/hooks/useSubmitAction.ts`)
 - [x] 4. Routing + guards (`src/AppRoutes.tsx`: RequireAuth, GuestOnly, unknown paths → `/`; wired in `App.tsx`)
-- [ ] 5. Dashboard list (skeleton, card states, Sold out disabled, Only 1 left, "Showing X of Y")
+- [ ] 4a. **Backend:** optional `imageUrl` on vehicles (decision 23), RED/GREEN; then seed sets it for the 12 sample cars
+- [ ] 5. Dashboard header (brand sign, user email, ADMIN badge, **Log out** button → clears session → /login) + list (skeleton, card states with photo or car-icon placeholder, Sold out disabled, Only 1 left, "Showing X of Y")
 - [ ] 6a. **Backend:** `q` search parameter (make OR model), its own RED/GREEN cycle
 - [ ] 6b. Search + filter (desktop form, mobile box/chips/panel, empty state, Clear all filters)
 - [ ] 7. Purchase flow (banner, stock update, 409 error, no double-submit)
