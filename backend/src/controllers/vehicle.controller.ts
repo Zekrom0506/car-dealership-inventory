@@ -1,11 +1,17 @@
 import type { Request, Response } from 'express';
 import { parseOrThrow } from '../validation/parse';
 import { createVehicleSchema } from '../validation/vehicle.schemas';
-import { createVehicle } from '../services/vehicle.service';
+import { createVehicle, listVehicles } from '../services/vehicle.service';
 
 /** POST /api/vehicles — admin only. Returns 201 with { vehicle }. */
 export async function create(req: Request, res: Response): Promise<void> {
   const input = parseOrThrow(createVehicleSchema, req.body);
   const vehicle = await createVehicle(input);
   res.status(201).json({ vehicle });
+}
+
+/** GET /api/vehicles — any logged-in user. Returns 200 with { vehicles }. */
+export async function list(_req: Request, res: Response): Promise<void> {
+  const vehicles = await listVehicles();
+  res.status(200).json({ vehicles });
 }

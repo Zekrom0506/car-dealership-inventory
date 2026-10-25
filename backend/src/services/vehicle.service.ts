@@ -6,3 +6,8 @@ import type { CreateVehicleInput } from '../validation/vehicle.schemas';
 export async function createVehicle(input: CreateVehicleInput): Promise<Vehicle> {
   return prisma.vehicle.create({ data: input });
 }
+
+/** All vehicles (including sold-out ones), newest first; id breaks ties so the order is stable. */
+export async function listVehicles(): Promise<Vehicle[]> {
+  return prisma.vehicle.findMany({ orderBy: [{ createdAt: 'desc' }, { id: 'desc' }] });
+}
