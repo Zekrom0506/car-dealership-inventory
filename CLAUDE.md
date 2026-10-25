@@ -167,8 +167,9 @@ Login card: `bg-card`, `1.5px solid ink`, `shadow-offset` (sm on mobile), 440px 
 - [x] 6a. **Backend:** `q` search parameter (make OR model), its own RED/GREEN cycle
 - [x] 6b. Search + filter (desktop form, empty state, Clear all filters)
 - [x] 7. Purchase flow (banner, stock update, 409 error, no double-submit)
-- [ ] 8. Admin (role-gated UI, Add/Edit dialog, Restock stepper, Delete confirm)
+- [x] 8. Admin (role-gated UI, Add/Edit dialog with optional Photo URL, Restock stepper, Delete confirm)
 - [ ] 9. Mobile layout (search box → `q`, category chips, Filter panel), account menu, dialog a11y (Esc, focus trap), screenshots
+**Left to do (as of 2026-10-25):** step 9 mobile polish (search box/chips/Filter panel, account menu, dialog Esc + focus trap; dialogs currently close only via Cancel), then Phase 4 deployment and Phase 5 README.
 ### Phase 4 — Deployment (Neon Postgres + API host + frontend host)
 - **CORS:** if the frontend and API end up on different domains, the backend needs CORS allowing only the frontend's origin — add as a small backend RED/GREEN cycle here. (Locally the Vite proxy avoids it.)
 ### Phase 5 — README (setup, screenshots, "My AI Usage"), test report, PROMPTS.md
