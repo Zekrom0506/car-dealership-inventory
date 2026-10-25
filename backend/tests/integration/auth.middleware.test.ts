@@ -86,6 +86,15 @@ describe('requireAuth', () => {
     expect(response.body).toEqual({ error: 'Invalid or expired token' });
   });
 
+  it('returns 401 when a correctly signed token has a subject that is not a user id', async () => {
+    const odd = jwt.sign({ role: 'ADMIN' }, process.env.JWT_SECRET!, { subject: 'abc' });
+
+    const response = await request(app).get('/protected').set('Authorization', `Bearer ${odd}`);
+
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({ error: 'Invalid or expired token' });
+  });
+
   it('returns 401 when the token is valid but the user has since been deleted', async () => {
     const user = await createUser();
     const token = signToken(user);

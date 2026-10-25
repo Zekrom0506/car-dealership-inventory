@@ -4,6 +4,7 @@ import { prisma } from '../../src/lib/prisma';
 import { resetDatabase, disconnectDatabase } from '../helpers/db';
 import { createUser } from '../helpers/users';
 import { authHeader } from '../helpers/auth';
+import { createVehicleRecord } from '../helpers/vehicles';
 
 /**
  * App-wide error responses: whatever goes wrong, the client always gets JSON in the
@@ -68,4 +69,25 @@ describe('unexpected errors', () => {
     expect(response.text).not.toMatch(/\.ts:\d+/); // no stack trace lines like "vehicle.service.ts:15"
     expect(logSpy).toHaveBeenCalledWith(expect.objectContaining({ message: internalDetails }));
   });
+
+  it.each([
+    ['PUT /:id (update)', 'update', 'put', '', { price: 1 }],
+    ['DELETE /:id (delete)', 'delete', 'delete', '', undefined],
+    ['POST /:id/purchase', 'update', 'post', '/purchase', { quantity: 1 }],
+    ['POST /:id/restock', 'update', 'post', '/restock', { quantity: 1 }],
+  ] as const)(
+    'returns 500 (not 404 or 409) when %s hits a database error other than "not found"',
+    async (_case, prismaMethod, httpMethod, suffix, body) => {
+      const admin = await createUser({ email: 'admin@example.com', role: 'ADMIN' });
+      const vehicle = await createVehicleRecord();
+      jest.spyOn(prisma.vehicle, prismaMethod).mockRejectedValue(new Error(internalDetails));
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const req = request(app)[httpMethod](`/api/vehicles/${vehicle.id}${suffix}`).set('Authorization', authHeader(admin));
+      const response = body === undefined ? await req : await req.send(body);
+
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({ error: 'Internal server error' });
+    },
+  );
 });

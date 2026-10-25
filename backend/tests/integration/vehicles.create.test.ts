@@ -118,6 +118,7 @@ describe('POST /api/vehicles', () => {
     ['quantity is missing', withoutQuantity, 'quantity is required'],
     ['quantity is negative', { ...validVehicle, quantity: -1 }, QUANTITY_MESSAGE],
     ['quantity has decimals', { ...validVehicle, quantity: 1.5 }, QUANTITY_MESSAGE],
+    ['quantity is a string', { ...validVehicle, quantity: '5' }, QUANTITY_MESSAGE],
     ['quantity is above the maximum', { ...validVehicle, quantity: MAX_INT + 1 }, 'quantity must be at most 2147483647'],
   ])('returns 400 when %s', async (_case, body, message) => {
     const admin = await createAdmin();
