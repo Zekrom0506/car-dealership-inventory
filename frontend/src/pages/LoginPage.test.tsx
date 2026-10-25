@@ -85,7 +85,7 @@ describe('LoginPage', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
-  it('disables the button while logging in, so it cannot be submitted twice', async () => {
+  it('shows "Logging in…" and disables the button while logging in, so it cannot be submitted twice', async () => {
     const pending = deferred<Response>()
     const fetchMock = vi.fn(() => pending.promise)
     vi.stubGlobal('fetch', fetchMock)
@@ -94,10 +94,12 @@ describe('LoginPage', () => {
     await userEvent.type(passwordField(), 'SecurePass123')
 
     await userEvent.click(submitButton())
-    await userEvent.click(submitButton())
+    const busyButton = screen.getByRole('button', { name: 'Logging in…' })
+    await userEvent.click(busyButton)
     await userEvent.type(passwordField(), '{Enter}')
 
-    expect(submitButton()).toBeDisabled()
+    expect(busyButton).toBeDisabled()
+    expect(busyButton).toHaveAttribute('aria-busy', 'true')
     expect(fetchMock).toHaveBeenCalledTimes(1)
 
     pending.resolve(jsonResponse(200, { token: fakeToken(), user: priya }))

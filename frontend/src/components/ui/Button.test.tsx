@@ -51,4 +51,20 @@ describe('Button', () => {
 
     expect(screen.getByRole('button', { name: 'Purchase' })).toContainElement(screen.getByTestId('cart-icon'))
   })
+
+  it('when busy: is disabled, tells screen readers it is busy, and ignores clicks', async () => {
+    const onClick = vi.fn()
+    render(
+      <Button busy onClick={onClick}>
+        Logging in…
+      </Button>,
+    )
+
+    const button = screen.getByRole('button', { name: 'Logging in…' })
+    await userEvent.click(button)
+
+    expect(button).toBeDisabled()
+    expect(button).toHaveAttribute('aria-busy', 'true')
+    expect(onClick).not.toHaveBeenCalled()
+  })
 })

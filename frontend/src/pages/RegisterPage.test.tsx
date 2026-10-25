@@ -76,7 +76,7 @@ describe('RegisterPage', () => {
     expect(requestAt(fetchMock, 0).url).toBe('/api/auth/register')
   })
 
-  it('disables the button while creating the account, so it cannot be submitted twice', async () => {
+  it('shows "Creating account…" and disables the button while creating the account, so it cannot be submitted twice', async () => {
     const pending = deferred<Response>()
     const fetchMock = vi.fn(() => pending.promise)
     vi.stubGlobal('fetch', fetchMock)
@@ -84,9 +84,11 @@ describe('RegisterPage', () => {
     await fillForm()
 
     await userEvent.click(submitButton())
-    await userEvent.click(submitButton())
+    const busyButton = screen.getByRole('button', { name: 'Creating account…' })
+    await userEvent.click(busyButton)
 
-    expect(submitButton()).toBeDisabled()
+    expect(busyButton).toBeDisabled()
+    expect(busyButton).toHaveAttribute('aria-busy', 'true')
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 

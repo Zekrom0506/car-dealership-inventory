@@ -8,6 +8,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: 'md' | 'lg'
   /** Icon shown before the text. */
   icon?: ReactNode
+  /** Request in progress: disabled, aria-busy, and a "busy" look instead of the disabled style. */
+  busy?: boolean
 }
 
 // Hover changes only apply to enabled buttons (`enabled:`), so disabled ones like "Sold out" never react.
