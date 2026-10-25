@@ -4,6 +4,7 @@ Context for any AI session continuing this project. Keep short; update as we go.
 
 ## Working rules
 - **Strict TDD:** write failing test → run it, confirm it fails for the right reason → minimum code to pass → refactor.
+- **Always show the RED output** (the actual failing test lines) in the message and stop before GREEN — even for one-line changes. Text between tool calls is not shown to the user.
 - **Ask vs decide:** if something is ambiguous or a decision would be costly to change later, ask the user before building. For small, obvious choices, decide and tell the user what was chosen.
 - **Small steps:** after each RED / GREEN / REFACTOR step, stop and wait for the user.
 - Never change a test just to make it pass without explaining why.
