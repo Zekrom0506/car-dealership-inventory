@@ -1,4 +1,5 @@
 import express, { Express } from 'express';
+import { authRouter } from './routes/auth.routes';
 
 /**
  * Builds and configures the Express application.
@@ -12,6 +13,8 @@ export function createApp(): Express {
   app.get('/api/health', (_req, res) => {
     res.status(200).json({ status: 'ok' });
   });
+
+  app.use('/api/auth', authRouter);
 
   return app;
 }
