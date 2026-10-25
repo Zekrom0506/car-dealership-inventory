@@ -40,11 +40,12 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 8. Price = integer (whole currency units). Quantity = integer ≥ 0.
 9. Errors: `{ "error": "message" }`. JWT expires in 1h.
 10. Secrets in `.env` / `.env.test` (git-ignored); `.env.example` and `.env.test.example` committed. App refuses to start without `JWT_SECRET`.
-11. Register returns `201 { user: { id, email, role, createdAt } }` (no token). Login will return `{ token, user }`.
+11. Register returns `201 { user: { id, email, role, createdAt } }` (no token). Login returns `200 { token, user }`.
 12. Password minimum 8 characters.
 13. Emails are trimmed + lowercased via `src/utils/normalizeEmail.ts` — the single shared place (login must use it too).
 14. Validation errors are readable, e.g. `email is required`, `password must be at least 8 characters`.
-15. Changing what the user sees (messages, status codes) is a behaviour change → its own RED/GREEN cycle, never part of REFACTOR.
+15. JWT payload: `sub` = user id (string), `role`. Role changes need a new login. Login returns 401 `Invalid email or password` for both unknown email and wrong password; login only requires a password to be present (no length rule).
+16. Changing what the user sees (messages, status codes) is a behaviour change → its own RED/GREEN cycle, never part of REFACTOR.
 
 ## Schema
 - **User:** id (int), email (unique), passwordHash, role (`USER`|`ADMIN`, default `USER`), createdAt
@@ -53,14 +54,17 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 ## Code conventions (backend)
 - Layers: `routes/` → `controllers/` (HTTP only) → `services/` (business rules) → Prisma. Input rules in `validation/*.schemas.ts`, parsed with `parseOrThrow`.
 - Throw `HttpError(status, message)`; `middleware/errorHandler.ts` sends `{ error }`. Non-HttpErrors go to Express's default handler.
+- Read environment variables only through `src/config/env.ts`; all JWT code lives in `src/lib/jwt.ts`.
 - Prisma 7 client is generated into `src/generated/prisma` (git-ignored; `npm install` regenerates it).
 - Claude's sandbox runs tests via `~/pg-sandbox/with-pg.sh npm test` (starts Postgres 16.14 for one command). Claude can't delete files or commit in the user's folder.
+- `git add` uses exact file paths only (never whole folders), so each commit holds only its own changes.
+- Known history quirk: commit `ef061b5` (refactor) also contains the clear-messages change, so `1ad14e6` [RED] did not actually fail. Left as-is; mention in README.
 
 ## Phases & progress
 ### Phase 1 — Backend (TDD)
 - [x] 0. Setup + `GET /api/health`
 - [x] 1. Register
-- [ ] 2. Login
+- [x] 2. Login
 - [ ] 3. Auth middleware (401 / admin 403)
 - [ ] 4. POST /api/vehicles
 - [ ] 5. GET /api/vehicles
