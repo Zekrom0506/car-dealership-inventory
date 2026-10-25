@@ -118,6 +118,17 @@ describe('seedSampleVehicles', () => {
     expect(vehicles.filter((v) => v.quantity === 1)).toHaveLength(1);
   });
 
+  it('gives every vehicle a photo path /cars/<make>-<model>.jpg (lowercase, spaces → -)', async () => {
+    await seedSampleVehicles();
+    const vehicles = await prisma.vehicle.findMany();
+
+    for (const v of vehicles) {
+      const slug = `${v.make}-${v.model}`.toLowerCase().replace(/\s+/g, '-');
+      expect(v.imageUrl).toBe(`/cars/${slug}.jpg`);
+    }
+    expect(vehicles.map((v) => v.imageUrl)).toEqual(expect.arrayContaining(['/cars/toyota-innova-hycross.jpg', '/cars/tesla-model-3.jpg']));
+  });
+
   it('uses a wide range of rupee prices (under ₹10 lakh up to over ₹1 crore)', async () => {
     await seedSampleVehicles();
     const prices = (await prisma.vehicle.findMany()).map((v) => v.price);
