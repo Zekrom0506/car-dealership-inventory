@@ -46,6 +46,8 @@ model Vehicle {
   price     Int
   /// Units in stock; never negative.
   quantity  Int
+  /// Photo: an http(s) URL or a site path like /cars/honda-city.jpg; null = no image.
+  imageUrl  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

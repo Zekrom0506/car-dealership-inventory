@@ -20,6 +20,20 @@ const priceField = z
   .positive({ error: PRICE_MESSAGE })
   .max(MAX_INT, { error: `price must be at most ${MAX_INT}` });
 
+const IMAGE_URL_MESSAGE = 'imageUrl must be an http(s) URL or a path starting with /';
+const IMAGE_URL_MAX = 2048;
+
+/** http(s)://host… or a path on our own site ("/x", but not "//host", which points at another site). */
+const IMAGE_URL_PATTERN = /^(https?:\/\/[^\s/]+\S*|\/(?!\/)\S*)$/i;
+
+/** Optional photo URL; null means "no image" (and clears it on update). */
+const imageUrlField = z
+  .string({ error: IMAGE_URL_MESSAGE })
+  .trim()
+  .max(IMAGE_URL_MAX, { error: `imageUrl must be at most ${IMAGE_URL_MAX} characters` })
+  .regex(IMAGE_URL_PATTERN, { error: IMAGE_URL_MESSAGE })
+  .nullable();
+
 export const createVehicleSchema = z.object({
   make: nonEmptyText('make'),
   model: nonEmptyText('model'),
@@ -30,6 +44,7 @@ export const createVehicleSchema = z.object({
     .int({ error: QUANTITY_MESSAGE })
     .min(0, { error: QUANTITY_MESSAGE })
     .max(MAX_INT, { error: `quantity must be at most ${MAX_INT}` }),
+  imageUrl: imageUrlField.optional(),
 });
 
 export type CreateVehicleInput = z.output<typeof createVehicleSchema>;
@@ -44,7 +59,7 @@ export const vehicleIdSchema = z
   .pipe(z.number().max(MAX_INT, { error: ID_MESSAGE }));
 
 /**
- * PUT body: any subset of make/model/category/price.
+ * PUT body: any subset of make/model/category/price/imageUrl (imageUrl: null removes the image).
  * quantity is rejected (stock changes only via purchase/restock); unknown fields are dropped.
  */
 export const updateVehicleSchema = z
@@ -54,10 +69,11 @@ export const updateVehicleSchema = z
     model: nonEmptyText('model').optional(),
     category: categoryField.optional(),
     price: priceField.optional(),
+    imageUrl: imageUrlField.optional(),
   })
   .transform(({ quantity: _quantity, ...fields }) => fields)
   .refine((fields) => Object.values(fields).some((value) => value !== undefined), {
-    error: 'provide at least one field to update: make, model, category, price',
+    error: 'provide at least one field to update: make, model, category, price, imageUrl',
   });
 
 export type UpdateVehicleInput = z.output<typeof updateVehicleSchema>;
