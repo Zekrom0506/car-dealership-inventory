@@ -1,7 +1,9 @@
 import { prisma } from '../lib/prisma';
-import { Prisma, type Vehicle } from '../generated/prisma/client';
-import { HttpError } from '../errors/HttpError';
+import type { Prisma, Vehicle } from '../generated/prisma/client';
+import { rethrowNotFound } from '../lib/prismaErrors';
 import type { CreateVehicleInput, SearchVehiclesInput, UpdateVehicleInput } from '../validation/vehicle.schemas';
+
+const VEHICLE_NOT_FOUND = 'Vehicle not found';
 
 /** Shared sort for every vehicle list: newest first; id breaks ties so the order is stable. */
 const NEWEST_FIRST: Prisma.VehicleOrderByWithRelationInput[] = [{ createdAt: 'desc' }, { id: 'desc' }];
@@ -40,11 +42,7 @@ export async function updateVehicle(id: number, fields: UpdateVehicleInput): Pro
   try {
     return await prisma.vehicle.update({ where: { id }, data: fields });
   } catch (error) {
-    // P2025 = "record to update not found"
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-      throw new HttpError(404, 'Vehicle not found');
-    }
-    throw error;
+    rethrowNotFound(error, VEHICLE_NOT_FOUND);
   }
 }
 
@@ -56,10 +54,6 @@ export async function deleteVehicle(id: number): Promise<void> {
   try {
     await prisma.vehicle.delete({ where: { id } });
   } catch (error) {
-    // P2025 = "record to delete not found"
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-      throw new HttpError(404, 'Vehicle not found');
-    }
-    throw error;
+    rethrowNotFound(error, VEHICLE_NOT_FOUND);
   }
 }

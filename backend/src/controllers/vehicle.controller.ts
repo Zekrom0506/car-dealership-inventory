@@ -3,6 +3,9 @@ import { parseOrThrow } from '../validation/parse';
 import { createVehicleSchema, searchVehiclesSchema, updateVehicleSchema, vehicleIdSchema } from '../validation/vehicle.schemas';
 import { createVehicle, deleteVehicle, listVehicles, searchVehicles, updateVehicle } from '../services/vehicle.service';
 
+/** Reads and validates the :id route parameter (400 if it is not a valid id). */
+const vehicleIdFrom = (req: Request): number => parseOrThrow(vehicleIdSchema, req.params.id);
+
 /** POST /api/vehicles — admin only. Returns 201 with { vehicle }. */
 export async function create(req: Request, res: Response): Promise<void> {
   const input = parseOrThrow(createVehicleSchema, req.body);
@@ -25,7 +28,7 @@ export async function search(req: Request, res: Response): Promise<void> {
 
 /** PUT /api/vehicles/:id — admin only. Partial update; returns 200 with { vehicle }. */
 export async function update(req: Request, res: Response): Promise<void> {
-  const id = parseOrThrow(vehicleIdSchema, req.params.id);
+  const id = vehicleIdFrom(req);
   const fields = parseOrThrow(updateVehicleSchema, req.body);
   const vehicle = await updateVehicle(id, fields);
   res.status(200).json({ vehicle });
@@ -33,7 +36,7 @@ export async function update(req: Request, res: Response): Promise<void> {
 
 /** DELETE /api/vehicles/:id — admin only. Returns 204 with no body. */
 export async function remove(req: Request, res: Response): Promise<void> {
-  const id = parseOrThrow(vehicleIdSchema, req.params.id);
+  const id = vehicleIdFrom(req);
   await deleteVehicle(id);
   res.status(204).end();
 }
