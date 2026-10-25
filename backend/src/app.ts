@@ -1,5 +1,6 @@
 import express, { Express } from 'express';
 import { authRouter } from './routes/auth.routes';
+import { errorHandler } from './middleware/errorHandler';
 
 /**
  * Builds and configures the Express application.
@@ -15,6 +16,9 @@ export function createApp(): Express {
   });
 
   app.use('/api/auth', authRouter);
+
+  // Must be registered after all routes.
+  app.use(errorHandler);
 
   return app;
 }
