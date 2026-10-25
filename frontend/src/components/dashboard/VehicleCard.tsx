@@ -1,0 +1,51 @@
+import { ShoppingCart } from 'lucide-react'
+import type { Vehicle } from '../../api/vehicles'
+import { formatInr } from '../../lib/formatInr'
+import { Button } from '../ui/Button'
+import { StripLabel } from '../ui/StripLabel'
+import { VehiclePhoto } from './VehiclePhoto'
+
+/** One vehicle: photo, labels, make/model, price, stock and the Purchase button. */
+export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
+  const { make, model, category, price, quantity, imageUrl } = vehicle
+  const soldOut = quantity === 0
+
+  return (
+    <article className="flex flex-col border-[1.5px] border-ink bg-card transition-[transform,box-shadow] duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-offset-sm md:hover:shadow-offset">
+      <div className="relative">
+        <VehiclePhoto src={imageUrl} alt={`${make} ${model}`} />
+        <StripLabel className="absolute top-3 left-3">{category}</StripLabel>
+        {soldOut && (
+          <StripLabel tone="soldOut" className="absolute top-3 right-3">
+            Sold out
+          </StripLabel>
+        )}
+        {quantity === 1 && (
+          <StripLabel tone="low" className="absolute top-3 right-3">
+            Only 1 left
+          </StripLabel>
+        )}
+      </div>
+
+      <div className="flex flex-1 flex-col gap-3 p-4 md:px-[18px] md:pt-[18px] md:pb-5">
+        <div>
+          <span className="text-[13px] font-medium text-grease">{make}</span>
+          <h2 className="m-0 font-display text-[22px] leading-tight font-bold">{model}</h2>
+        </div>
+        <div className="mt-auto flex items-baseline justify-between gap-2 border-t border-hairline pt-3">
+          <span className="font-display text-2xl font-bold">{formatInr(price)}</span>
+          <span className="text-[13px] text-grease">{soldOut ? 'Out of stock' : `${quantity} in stock`}</span>
+        </div>
+        {soldOut ? (
+          <Button disabled className="w-full">
+            Sold out
+          </Button>
+        ) : (
+          <Button className="w-full" icon={<ShoppingCart size={18} aria-hidden="true" />}>
+            Purchase
+          </Button>
+        )}
+      </div>
+    </article>
+  )
+}
