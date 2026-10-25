@@ -29,10 +29,11 @@ const variants: Record<ButtonVariant, string> = {
   primary:
     'bg-orange font-semibold enabled:hover:bg-orange-burnt ' +
     'disabled:bg-transparent disabled:border disabled:border-dashed disabled:border-grease disabled:text-grease disabled:font-normal',
-  secondary: 'bg-orange-light font-normal enabled:hover:bg-orange-light-hover',
+  // Other variants dim to 50% when disabled (e.g. "Save vehicle" while saving).
+  secondary: 'bg-orange-light font-normal enabled:hover:bg-orange-light-hover disabled:opacity-50',
   // Cream text on rust: black on rust fails contrast.
-  danger: 'bg-rust text-paper font-semibold enabled:hover:bg-rust-hover',
-  outline: 'bg-transparent border-[1.5px] border-solid border-ink enabled:hover:bg-ink/8',
+  danger: 'bg-rust text-paper font-semibold enabled:hover:bg-rust-hover disabled:opacity-50',
+  outline: 'bg-transparent border-[1.5px] border-solid border-ink enabled:hover:bg-ink/8 disabled:opacity-50',
 }
 
 /** The one button used everywhere. Defaults to type="button" so it never submits a form by accident. */
