@@ -198,3 +198,30 @@ describe('DashboardPage — list', () => {
     expect(screen.queryByRole('status', { name: 'Loading vehicles' })).not.toBeInTheDocument()
   })
 })
+
+describe('DashboardPage — empty inventory', () => {
+  it('tells a user there are no vehicles yet', async () => {
+    fakeFetch(jsonResponse(200, { vehicles: [] }))
+    renderDashboard()
+
+    expect(await screen.findByRole('heading', { name: 'No vehicles in stock yet' })).toBeInTheDocument()
+    expect(screen.queryByText('Add the first vehicle to get started.')).not.toBeInTheDocument()
+  })
+
+  it('gives an admin a hint to add the first vehicle', async () => {
+    logInAs(adminUser)
+    fakeFetch(jsonResponse(200, { vehicles: [] }))
+    renderDashboard()
+
+    expect(await screen.findByRole('heading', { name: 'No vehicles in stock yet' })).toBeInTheDocument()
+    expect(screen.getByText('Add the first vehicle to get started.')).toBeInTheDocument()
+  })
+
+  it('does not show the empty message when there are vehicles', async () => {
+    fakeFetch(jsonResponse(200, { vehicles: [i20] }))
+    renderDashboard()
+
+    await screen.findByRole('heading', { name: 'i20' })
+    expect(screen.queryByRole('heading', { name: 'No vehicles in stock yet' })).not.toBeInTheDocument()
+  })
+})
