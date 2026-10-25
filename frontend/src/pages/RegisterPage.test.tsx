@@ -38,7 +38,7 @@ describe('RegisterPage', () => {
     ['the email is invalid', { email: 'priya.sharma@gmail' }, 'Email', 'Enter a valid email address, like name@example.com'],
     ['the password is shorter than 8 characters', { password: 'abc12' }, 'Password', 'Use at least 8 characters'],
     ['the passwords don’t match', { confirm: 'abc123456' }, 'Confirm password', 'Passwords don’t match'],
-    ['the confirmation is empty', { confirm: '' }, 'Confirm password', 'Passwords don’t match'],
+    ['the confirmation is empty', { confirm: '' }, 'Confirm password', 'Please confirm your password'],
   ])('shows an error and sends nothing when %s', async (_case, overrides, field, message) => {
     const fetchMock = fakeFetch()
     renderAt('/register')
