@@ -42,6 +42,11 @@ function Gallery() {
           <Button variant="secondary" icon={<Funnel size={17} strokeWidth={1.5} />}>Filter</Button>
           <Button size="lg">Log in</Button>
         </div>
+        <div className="flex flex-wrap gap-3" data-gallery="disabled">
+          <Button variant="secondary" disabled>Secondary disabled</Button>
+          <Button variant="danger" disabled>Danger disabled</Button>
+          <Button variant="outline" disabled>Outline disabled</Button>
+        </div>
       </Section>
 
       <Section title="Strip labels">

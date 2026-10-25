@@ -27,7 +27,7 @@ export function Banner({ tone, children, onDismiss }: BannerProps) {
           type="button"
           aria-label="Dismiss"
           onClick={onDismiss}
-          className="-my-1.5 flex h-8 w-11 shrink-0 cursor-pointer items-center justify-center border-0 bg-transparent text-paper"
+          className="-my-1.5 flex h-8 w-11 shrink-0 cursor-pointer items-center justify-center border-0 bg-transparent text-paper transition-colors duration-150 hover:bg-paper/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-paper"
         >
           <X size={18} strokeWidth={2} aria-hidden="true" />
         </button>

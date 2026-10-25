@@ -26,6 +26,10 @@
   --color-hairline: #D8CBB6;      /* Hairline dividers, skeleton card border */
   --color-photo: #E3D6C3;         /* Vehicle photo placeholder, loading skeleton */
 
+  /* Hover shades — derived from the palette (not new colours) */
+  --color-orange-light-hover: color-mix(in oklab, var(--color-orange-light) 75%, var(--color-orange)); /* secondary hover */
+  --color-rust-hover: color-mix(in oklab, var(--color-rust) 85%, var(--color-ink));                     /* danger hover */
+
   /* Fonts */
   --font-*: initial;
   --font-display: "Space Grotesk", sans-serif;  /* Brand, headings, prices */
