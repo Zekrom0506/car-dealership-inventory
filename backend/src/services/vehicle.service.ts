@@ -47,3 +47,19 @@ export async function updateVehicle(id: number, fields: UpdateVehicleInput): Pro
     throw error;
   }
 }
+
+/**
+ * Permanently removes a vehicle.
+ * @throws HttpError 404 if no vehicle has that id.
+ */
+export async function deleteVehicle(id: number): Promise<void> {
+  try {
+    await prisma.vehicle.delete({ where: { id } });
+  } catch (error) {
+    // P2025 = "record to delete not found"
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      throw new HttpError(404, 'Vehicle not found');
+    }
+    throw error;
+  }
+}

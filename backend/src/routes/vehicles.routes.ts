@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { requireAdmin, requireAuth } from '../middleware/auth';
-import { create, list, search, update } from '../controllers/vehicle.controller';
+import { create, list, remove, search, update } from '../controllers/vehicle.controller';
 
 /** Routes under /api/vehicles. */
 export const vehiclesRouter = Router();
@@ -10,3 +10,4 @@ vehiclesRouter.get('/', requireAuth, list);
 vehiclesRouter.get('/search', requireAuth, search);
 vehiclesRouter.post('/', requireAuth, requireAdmin, create);
 vehiclesRouter.put('/:id', requireAuth, requireAdmin, update);
+vehiclesRouter.delete('/:id', requireAuth, requireAdmin, remove);
