@@ -167,14 +167,14 @@ DATABASE_URL='<Neon connection string>' ADMIN_EMAIL='<your email>' ADMIN_PASSWOR
 <!-- TODO: add screenshots -->
 | Screen | Image |
 |---|---|
-| Log in | _screenshot coming soon_ |
-| Register | _screenshot coming soon_ |
-| Dashboard (user) | _screenshot coming soon_ |
-| Dashboard (admin) | _screenshot coming soon_ |
-| Search with no results | _screenshot coming soon_ |
-| Add / edit vehicle | _screenshot coming soon_ |
-| Restock | _screenshot coming soon_ |
-| Delete confirmation | _screenshot coming soon_ |
+| Log in | ![Log in](docs/screenshots/login.png) |
+| Register | ![Register](docs/screenshots/register.png) |
+| Dashboard (user) | ![Dashboard user](docs/screenshots/dashboard-user.png) |
+| Dashboard (admin) | ![Dashboard admin](docs/screenshots/dashboard-admin.png) |
+| Search with no results | ![No results](docs/screenshots/search-empty.png) |
+| Add / edit vehicle | ![Add or edit](docs/screenshots/add-edit.png) |
+| Restock | ![Restock](docs/screenshots/restock.png) |
+| Delete confirmation | ![Delete](docs/screenshots/delete.png) |
 
 ## Known limitations
 
