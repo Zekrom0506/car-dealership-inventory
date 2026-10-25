@@ -56,6 +56,24 @@ describe('POST /api/auth/register', () => {
     expect(await prisma.user.count()).toBe(1);
   });
 
+  it('trims and lowercases the email before saving it', async () => {
+    const response = await register({ email: '  Jane@Example.COM  ', password: validUser.password });
+
+    expect(response.status).toBe(201);
+    expect(response.body.user.email).toBe('jane@example.com');
+    const saved = await prisma.user.findUnique({ where: { email: 'jane@example.com' } });
+    expect(saved).not.toBeNull();
+  });
+
+  it('returns 409 when the same email is registered with different case or spaces', async () => {
+    await register({ email: ' Jane@Example.com ', password: validUser.password });
+
+    const response = await register({ email: 'jane@example.com', password: validUser.password });
+
+    expect(response.status).toBe(409);
+    expect(await prisma.user.count()).toBe(1);
+  });
+
   it.each([
     ['email is missing', { password: validUser.password }],
     ['email is not a valid email address', { email: 'not-an-email', password: validUser.password }],
