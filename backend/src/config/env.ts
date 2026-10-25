@@ -12,6 +12,13 @@ export const env = {
   get jwtSecret(): string {
     return process.env.JWT_SECRET!;
   },
+  /** Admin account created/updated by `npm run db:seed`. */
+  get adminEmail(): string | undefined {
+    return process.env.ADMIN_EMAIL;
+  },
+  get adminPassword(): string | undefined {
+    return process.env.ADMIN_PASSWORD;
+  },
   /** How long a login token stays valid, e.g. "1h" or "30m". */
   get jwtExpiresIn(): string {
     return process.env.JWT_EXPIRES_IN ?? '1h';

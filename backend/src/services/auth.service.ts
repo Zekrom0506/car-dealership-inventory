@@ -6,7 +6,7 @@ import type { User } from '../generated/prisma/client';
 import type { LoginInput, RegisterInput } from '../validation/auth.schemas';
 
 /** Cost factor for bcrypt: higher is slower to brute-force (and slower to compute). */
-const BCRYPT_ROUNDS = 10;
+export const BCRYPT_ROUNDS = 10;
 
 /** The user fields that are safe to send to clients (never the password hash). */
 export type PublicUser = Pick<User, 'id' | 'email' | 'role' | 'createdAt'>;
