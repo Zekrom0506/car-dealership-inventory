@@ -75,15 +75,23 @@ describe('POST /api/auth/register', () => {
   });
 
   it.each([
-    ['email is missing', { password: validUser.password }],
-    ['email is not a valid email address', { email: 'not-an-email', password: validUser.password }],
-    ['password is missing', { email: validUser.email }],
-    ['password is shorter than 8 characters', { email: validUser.email, password: 'short' }],
-  ])('returns 400 when %s', async (_case, body) => {
+    ['email is missing', { password: validUser.password }, 'email is required'],
+    [
+      'email is not a valid email address',
+      { email: 'not-an-email', password: validUser.password },
+      'email must be a valid email address',
+    ],
+    ['password is missing', { email: validUser.email }, 'password is required'],
+    [
+      'password is shorter than 8 characters',
+      { email: validUser.email, password: 'short' },
+      'password must be at least 8 characters',
+    ],
+  ])('returns 400 when %s, with a clear message', async (_case, body, message) => {
     const response = await register(body);
 
     expect(response.status).toBe(400);
-    expect(response.body).toEqual({ error: expect.any(String) });
+    expect(response.body).toEqual({ error: message });
     expect(await prisma.user.count()).toBe(0);
   });
 });
