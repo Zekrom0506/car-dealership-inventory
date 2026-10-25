@@ -18,5 +18,17 @@ export const env = {
   },
 };
 
-// STUB (RED step): real check comes in GREEN.
-export function assertRequiredEnv(): void {}
+/** Variables the app cannot run without. */
+const REQUIRED_VARIABLES = ['JWT_SECRET', 'DATABASE_URL'] as const;
+
+/**
+ * Fails fast at startup instead of failing later on the first login or query.
+ * @throws Error naming the first missing (or blank) required variable.
+ */
+export function assertRequiredEnv(): void {
+  for (const name of REQUIRED_VARIABLES) {
+    if (!process.env[name]?.trim()) {
+      throw new Error(`Missing required environment variable: ${name}`);
+    }
+  }
+}
