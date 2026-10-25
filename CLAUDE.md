@@ -40,15 +40,26 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 8. Price = integer (whole currency units). Quantity = integer ≥ 0.
 9. Errors: `{ "error": "message" }`. JWT expires in 1h.
 10. Secrets in `.env` / `.env.test` (git-ignored); `.env.example` and `.env.test.example` committed. App refuses to start without `JWT_SECRET`.
+11. Register returns `201 { user: { id, email, role, createdAt } }` (no token). Login will return `{ token, user }`.
+12. Password minimum 8 characters.
+13. Emails are trimmed + lowercased via `src/utils/normalizeEmail.ts` — the single shared place (login must use it too).
+14. Validation errors are readable, e.g. `email is required`, `password must be at least 8 characters`.
+15. Changing what the user sees (messages, status codes) is a behaviour change → its own RED/GREEN cycle, never part of REFACTOR.
 
 ## Schema
 - **User:** id (int), email (unique), passwordHash, role (`USER`|`ADMIN`, default `USER`), createdAt
 - **Vehicle:** id (int), make, model, category, price (int), quantity (int ≥ 0), createdAt, updatedAt
 
+## Code conventions (backend)
+- Layers: `routes/` → `controllers/` (HTTP only) → `services/` (business rules) → Prisma. Input rules in `validation/*.schemas.ts`, parsed with `parseOrThrow`.
+- Throw `HttpError(status, message)`; `middleware/errorHandler.ts` sends `{ error }`. Non-HttpErrors go to Express's default handler.
+- Prisma 7 client is generated into `src/generated/prisma` (git-ignored; `npm install` regenerates it).
+- Claude's sandbox runs tests via `~/pg-sandbox/with-pg.sh npm test` (starts Postgres 16.14 for one command). Claude can't delete files or commit in the user's folder.
+
 ## Phases & progress
 ### Phase 1 — Backend (TDD)
 - [x] 0. Setup + `GET /api/health`
-- [ ] 1. Register
+- [x] 1. Register
 - [ ] 2. Login
 - [ ] 3. Auth middleware (401 / admin 403)
 - [ ] 4. POST /api/vehicles
