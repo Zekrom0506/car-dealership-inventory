@@ -137,3 +137,36 @@ describe('GET /api/vehicles/search', () => {
     expect(response.status).toBe(401);
   });
 });
+
+describe('GET /api/vehicles/search?q= (make OR model)', () => {
+  it.each([
+    ['a make', 'toyota', ['RAV4', 'Corolla']],
+    ['a model', 'CIVIC', ['Civic']],
+    ['part of a make or model', 'OR', ['F-150', 'Corolla']],
+    ['"make model" together', 'toyota rav', ['RAV4']],
+    ['spaces around it (trimmed)', '%20%20f-1%20', ['F-150']],
+  ])('matches %s, case-insensitive, newest first', async (_case, q, expected) => {
+    const response = await search(`q=${q}`);
+
+    expect(response.status).toBe(200);
+    expect(models(response)).toEqual(expected);
+  });
+
+  it('combines q with the other filters (AND)', async () => {
+    const response = await search('q=toyota&category=Sedan');
+
+    expect(models(response)).toEqual(['Corolla']);
+  });
+
+  it('ignores a blank q', async () => {
+    const response = await search('q=%20%20');
+
+    expect(models(response)).toEqual(['F-150', 'Civic', 'RAV4', 'Corolla']);
+  });
+
+  it('returns an empty list when nothing matches', async () => {
+    const response = await search('q=tesla');
+
+    expect(response.body).toEqual({ vehicles: [] });
+  });
+});
