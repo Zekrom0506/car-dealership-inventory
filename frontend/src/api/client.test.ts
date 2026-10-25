@@ -6,7 +6,10 @@ import { fakeFetch, fakeToken, jsonResponse, priya, requestAt } from '../test/fa
 const storeSession = (token: string) => localStorage.setItem(SESSION_KEY, JSON.stringify({ token, user: priya }))
 
 beforeEach(() => localStorage.clear())
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  vi.unstubAllGlobals()
+  vi.unstubAllEnvs()
+})
 
 describe('apiRequest', () => {
   it('calls /api + path and returns the parsed JSON', async () => {
@@ -17,6 +20,20 @@ describe('apiRequest', () => {
     expect(requestAt(fetchMock).url).toBe('/api/vehicles')
     expect(requestAt(fetchMock).method).toBe('GET')
     expect(result).toEqual({ vehicles: [] })
+  })
+
+  it.each([
+    ['the backend address', 'https://api.example.com', 'https://api.example.com/api/vehicles'],
+    ['the backend address with a trailing slash', 'https://api.example.com/', 'https://api.example.com/api/vehicles'],
+    ['an address that already ends in /api', 'https://api.example.com/api', 'https://api.example.com/api/vehicles'],
+    ['an empty value (falls back to /api)', '', '/api/vehicles'],
+  ])('uses VITE_API_URL when set: %s', async (_case, value, expectedUrl) => {
+    vi.stubEnv('VITE_API_URL', value)
+    const fetchMock = fakeFetch(jsonResponse(200, { vehicles: [] }))
+
+    await apiRequest('/vehicles')
+
+    expect(requestAt(fetchMock).url).toBe(expectedUrl)
   })
 
   it('sends no Authorization header when logged out', async () => {

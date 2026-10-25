@@ -20,6 +20,16 @@ export interface RequestOptions {
 const UNREACHABLE = 'Can’t reach the server. Check your connection and try again.'
 const GENERIC = 'Something went wrong. Please try again.'
 
+/**
+ * Where the API lives. Locally "/api" (Vite proxies it to the backend). In production set
+ * VITE_API_URL to the backend's address, e.g. https://your-api.onrender.com (a trailing "/" or "/api" is fine).
+ */
+function apiBase(): string {
+  const configured = (import.meta.env.VITE_API_URL ?? '').trim().replace(/\/+$/, '')
+  if (!configured) return '/api'
+  return configured.endsWith('/api') ? configured : `${configured}/api`
+}
+
 const unauthorizedListeners = new Set<() => void>()
 
 /** Registers a callback for when the server rejects our token (401). Returns an unsubscribe function. */
@@ -54,7 +64,7 @@ export async function apiRequest<T>(path: string, { method = 'GET', body }: Requ
 
   let response: Response
   try {
-    response = await fetch(`/api${path}`, {
+    response = await fetch(`${apiBase()}${path}`, {
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
