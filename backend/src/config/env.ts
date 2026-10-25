@@ -17,3 +17,6 @@ export const env = {
     return process.env.JWT_EXPIRES_IN ?? '1h';
   },
 };
+
+// STUB (RED step): real check comes in GREEN.
+export function assertRequiredEnv(): void {}
