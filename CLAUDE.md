@@ -50,7 +50,8 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 18. Limits: make/model trimmed and non-empty; price whole number 1–2147483647; quantity whole number 0–2147483647 (PostgreSQL INTEGER max). Unknown body fields (e.g. `id`) are ignored.
 19. DB CHECK constraints (quantity ≥ 0, price > 0) to be added in step 9 (purchase).
 20. Search: blank and unknown query parameters are ignored; terms trimmed; unknown category → 400 with the list (same message as create); minPrice/maxPrice whole numbers 0–2147483647, min > max → 400. Same newest-first order as the list (`NEWEST_FIRST` in vehicle.service.ts).
-21. Step 7 must include a test that a non-numeric id (e.g. `PUT /api/vehicles/abc`) returns 400.
+21. Ids in the URL must be whole numbers 1–2147483647 (`vehicleIdSchema`), else 400 `id must be a positive whole number` — so `/search` can never be read as an id.
+21a. PUT is a partial update of make/model/category/price (same rules as create); empty body → 400. `quantity` in the body → 400 `quantity cannot be changed here; use purchase or restock` (avoids an edit form overwriting a concurrent purchase). Unknown vehicle → 404 `Vehicle not found`. Check order: auth → admin → id → body → exists.
 22. Changing what the user sees (messages, status codes) is a behaviour change → its own RED/GREEN cycle, never part of REFACTOR.
 
 ## Schema
@@ -68,6 +69,9 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 - `git add` uses exact file paths only (never whole folders), so each commit holds only its own changes.
 - Known history quirk: commit `ef061b5` (refactor) also contains the clear-messages change, so `1ad14e6` [RED] did not actually fail. Left as-is; mention in README.
 
+## Open questions
+- **Step 10:** quantity is locked out of PUT and restock only adds. How should an admin correct a miscount **downward** (e.g. a stock-take finds fewer cars)? Decide before writing step 10 tests.
+
 ## Phases & progress
 ### Phase 1 — Backend (TDD)
 - [x] 0. Setup + `GET /api/health`
@@ -77,7 +81,7 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 - [x] 4. POST /api/vehicles
 - [x] 5. GET /api/vehicles (newest first, id tie-breaker, includes quantity 0)
 - [x] 6. GET /api/vehicles/search (registered above any `/:id` route)
-- [ ] 7. PUT /api/vehicles/:id
+- [x] 7. PUT /api/vehicles/:id (partial update, quantity rejected)
 - [ ] 8. DELETE /api/vehicles/:id
 - [ ] 9. POST /api/vehicles/:id/purchase (atomic, 409 when out of stock)
 - [ ] 10. POST /api/vehicles/:id/restock
