@@ -49,7 +49,9 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 17. Vehicle responses: `{ vehicle }` (single) / `{ vehicles }` (list). Create is admin only, `quantity` is required (no default), category must match the fixed list exactly (frontend uses a dropdown).
 18. Limits: make/model trimmed and non-empty; price whole number 1–2147483647; quantity whole number 0–2147483647 (PostgreSQL INTEGER max). Unknown body fields (e.g. `id`) are ignored.
 19. DB CHECK constraints (quantity ≥ 0, price > 0) to be added in step 9 (purchase).
-20. Changing what the user sees (messages, status codes) is a behaviour change → its own RED/GREEN cycle, never part of REFACTOR.
+20. Search: blank and unknown query parameters are ignored; terms trimmed; unknown category → 400 with the list (same message as create); minPrice/maxPrice whole numbers 0–2147483647, min > max → 400. Same newest-first order as the list (`NEWEST_FIRST` in vehicle.service.ts).
+21. Step 7 must include a test that a non-numeric id (e.g. `PUT /api/vehicles/abc`) returns 400.
+22. Changing what the user sees (messages, status codes) is a behaviour change → its own RED/GREEN cycle, never part of REFACTOR.
 
 ## Schema
 - **User:** id (int), email (unique), passwordHash, role (`USER`|`ADMIN`, default `USER`), createdAt
@@ -74,7 +76,7 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 - [x] 3. Auth middleware (401 / admin 403)
 - [x] 4. POST /api/vehicles
 - [x] 5. GET /api/vehicles (newest first, id tie-breaker, includes quantity 0)
-- [ ] 6. GET /api/vehicles/search
+- [x] 6. GET /api/vehicles/search (registered above any `/:id` route)
 - [ ] 7. PUT /api/vehicles/:id
 - [ ] 8. DELETE /api/vehicles/:id
 - [ ] 9. POST /api/vehicles/:id/purchase (atomic, 409 when out of stock)
