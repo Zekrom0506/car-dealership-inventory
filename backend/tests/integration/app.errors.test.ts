@@ -1,11 +1,17 @@
 import request from 'supertest';
 import { createApp } from '../../src/app';
+import { prisma } from '../../src/lib/prisma';
+import { resetDatabase, disconnectDatabase } from '../helpers/db';
+import { createUser } from '../helpers/users';
+import { authHeader } from '../helpers/auth';
 
 /**
  * App-wide error responses: whatever goes wrong, the client always gets JSON in the
  * same { error } shape, never Express's default HTML pages.
  */
 const app = createApp();
+
+afterAll(disconnectDatabase);
 
 describe('malformed JSON body', () => {
   it.each([
@@ -35,5 +41,31 @@ describe('unknown routes', () => {
     expect(response.status).toBe(404);
     expect(response.type).toBe('application/json');
     expect(response.body).toEqual({ error: 'Not found' });
+  });
+});
+
+describe('unexpected errors', () => {
+  const internalDetails = 'connection to 10.0.0.5 failed, password=hunter2';
+
+  beforeEach(resetDatabase);
+  // Put back the real functions replaced with jest.spyOn in each test.
+  afterEach(() => jest.restoreAllMocks());
+
+  it('returns 500 JSON { error } without leaking details or a stack trace, and logs the real error', async () => {
+    const user = await createUser();
+    // Make the real database call behind GET /api/vehicles fail unexpectedly.
+    jest.spyOn(prisma.vehicle, 'findMany').mockRejectedValue(new Error(internalDetails));
+    // Capture server-side logging so it doesn't clutter the test output.
+    const logSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    const response = await request(app).get('/api/vehicles').set('Authorization', authHeader(user));
+
+    expect(response.status).toBe(500);
+    expect(response.type).toBe('application/json');
+    expect(response.body).toEqual({ error: 'Internal server error' });
+    expect(response.text).not.toContain('hunter2');
+    expect(response.text).not.toContain('10.0.0.5');
+    expect(response.text).not.toMatch(/\.ts:\d+/); // no stack trace lines like "vehicle.service.ts:15"
+    expect(logSpy).toHaveBeenCalledWith(expect.objectContaining({ message: internalDetails }));
   });
 });
