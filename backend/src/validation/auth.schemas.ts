@@ -1,11 +1,6 @@
 import { z } from 'zod';
 import { normalizeEmail } from '../utils/normalizeEmail';
-
-/** A string field with a readable message when it is missing or not a string. */
-export const requiredString = (field: string) =>
-  z.string({
-    error: (issue) => (issue.input === undefined ? `${field} is required` : `${field} must be a string`),
-  });
+import { requiredString } from './fields';
 
 /** Email is normalised (trimmed + lowercased) before it is checked. */
 const emailField = requiredString('email')

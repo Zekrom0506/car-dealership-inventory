@@ -1,18 +1,11 @@
 import { z } from 'zod';
 import { Category } from '../generated/prisma/enums';
-import { requiredString } from './auth.schemas';
-
-/** Largest value a PostgreSQL INTEGER column can hold. */
-const MAX_INT = 2_147_483_647;
+import { MAX_INT, nonEmptyText } from './fields';
 
 const CATEGORIES = Object.values(Category);
 
 const PRICE_MESSAGE = 'price must be a positive whole number';
 const QUANTITY_MESSAGE = 'quantity must be a whole number of 0 or more';
-
-/** Required text, trimmed, and not allowed to be empty after trimming. */
-const nonEmptyText = (field: string) =>
-  requiredString(field).trim().min(1, { error: `${field} cannot be empty` });
 
 export const createVehicleSchema = z.object({
   make: nonEmptyText('make'),
