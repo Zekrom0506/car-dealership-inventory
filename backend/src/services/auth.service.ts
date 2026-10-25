@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
-import jwt, { SignOptions } from 'jsonwebtoken';
 import { prisma } from '../lib/prisma';
 import { HttpError } from '../errors/HttpError';
+import { signToken } from '../lib/jwt';
 import type { User } from '../generated/prisma/client';
 import type { LoginInput, RegisterInput } from '../validation/auth.schemas';
 
@@ -40,9 +40,5 @@ export async function loginUser({ email, password }: LoginInput): Promise<{ toke
     throw new HttpError(401, 'Invalid email or password');
   }
 
-  const token = jwt.sign({ role: user.role }, process.env.JWT_SECRET!, {
-    subject: String(user.id),
-    expiresIn: (process.env.JWT_EXPIRES_IN ?? '1h') as SignOptions['expiresIn'],
-  });
-  return { token, user: toPublicUser(user) };
+  return { token: signToken(user), user: toPublicUser(user) };
 }
