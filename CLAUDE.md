@@ -49,7 +49,8 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 15. JWT payload: `sub` = user id (string), `role`. `requireAuth` loads the user from the DB on every request: deleted users get 401, and the **role comes from the DB**, so a demoted admin loses access immediately (the token's `role` is only informational, e.g. for the frontend). Login returns 401 `Invalid email or password` for both unknown email and wrong password; login only requires a password to be present (no length rule).
 17. Vehicle responses: `{ vehicle }` (single) / `{ vehicles }` (list). Create is admin only, `quantity` is required (no default), category must match the fixed list exactly (frontend uses a dropdown).
 18. Limits: make/model trimmed and non-empty; price whole number 1–2147483647; quantity whole number 0–2147483647 (PostgreSQL INTEGER max). Unknown body fields (e.g. `id`) are ignored.
-19. DB CHECK constraints (quantity ≥ 0, price > 0) to be added in step 9 (purchase).
+19. DB CHECK constraints `vehicles_quantity_non_negative` (quantity ≥ 0) and `vehicles_price_positive` (price > 0), hand-written in migration `add_vehicle_check_constraints` (Prisma schema can't express CHECKs).
+19a. Purchase: any logged-in user; body optional `{ quantity }` (default 1, 1–2147483647); returns 200 `{ vehicle }`. Stock check + decrease in ONE `UPDATE … WHERE id = ? AND quantity >= ?` (no overselling). 409 `Out of stock` when stock is 0, else 409 `Not enough stock: only N left`.
 20. Search: blank and unknown query parameters are ignored; terms trimmed; unknown category → 400 with the list (same message as create); minPrice/maxPrice whole numbers 0–2147483647, min > max → 400. Same newest-first order as the list (`NEWEST_FIRST` in vehicle.service.ts).
 21. Ids in the URL must be whole numbers 1–2147483647 (`vehicleIdSchema`), else 400 `id must be a positive whole number` — so `/search` can never be read as an id.
 21a. PUT is a partial update of make/model/category/price (same rules as create); empty body → 400. `quantity` in the body → 400 `quantity cannot be changed here; use purchase or restock` (avoids an edit form overwriting a concurrent purchase). Unknown vehicle → 404 `Vehicle not found`. Check order: auth → admin → id → body → exists.
@@ -85,7 +86,7 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 - [x] 6. GET /api/vehicles/search (registered above any `/:id` route)
 - [x] 7. PUT /api/vehicles/:id (partial update, quantity rejected)
 - [x] 8. DELETE /api/vehicles/:id (204; 404 when already deleted)
-- [ ] 9. POST /api/vehicles/:id/purchase (atomic, 409 when out of stock)
+- [x] 9. POST /api/vehicles/:id/purchase (single conditional UPDATE, DB CHECK constraints)
 - [ ] 10. POST /api/vehicles/:id/restock
 - [ ] 11. Admin seed script + coverage check
 ### Phase 2 — Frontend design (look & feel, pages, components)
