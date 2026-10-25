@@ -51,3 +51,19 @@ export async function purchaseVehicle(id: number): Promise<Vehicle> {
   const { vehicle } = await apiRequest<{ vehicle: Vehicle }>(`/vehicles/${id}/purchase`, { method: 'POST' })
   return vehicle
 }
+
+/** Body for POST /api/vehicles. */
+export interface NewVehicle {
+  make: string
+  model: string
+  category: Category
+  price: number
+  quantity: number
+  imageUrl: string | null
+}
+
+/** POST /api/vehicles (admin) — returns the created vehicle. */
+export async function createVehicle(body: NewVehicle): Promise<Vehicle> {
+  const { vehicle } = await apiRequest<{ vehicle: Vehicle }>('/vehicles', { method: 'POST', body })
+  return vehicle
+}

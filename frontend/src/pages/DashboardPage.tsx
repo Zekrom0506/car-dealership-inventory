@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { ApiError } from '../api/client'
-import { listVehicles, NO_FILTERS, purchaseVehicle, searchVehicles, type Vehicle, type VehicleFilters } from '../api/vehicles'
+import { createVehicle, listVehicles, NO_FILTERS, purchaseVehicle, searchVehicles, type NewVehicle, type Vehicle, type VehicleFilters } from '../api/vehicles'
 import { useAuth } from '../auth/useAuth'
 import { AppLayout } from '../components/dashboard/AppLayout'
 import { FilterForm } from '../components/dashboard/FilterForm'
+import { VehicleFormDialog } from '../components/dashboard/VehicleFormDialog'
 import { VehicleCard } from '../components/dashboard/VehicleCard'
 import { Banner } from '../components/ui/Banner'
 import { Button } from '../components/ui/Button'
 import { StripLabel } from '../components/ui/StripLabel'
+import { Plus } from 'lucide-react'
 import { formatInr } from '../lib/formatInr'
 
 /** Grid: 1 column < 640px, 2 < 1024px, 3 < 1280px, 4 from 1280px. */
@@ -27,6 +29,7 @@ export function DashboardPage() {
   const [purchasingId, setPurchasingId] = useState<number | null>(null)
   // A ref (not state) so a second click in the same instant is still blocked.
   const purchaseInProgress = useRef(false)
+  const [adding, setAdding] = useState(false)
 
   const messageFrom = (e: unknown) => (e instanceof ApiError ? e.message : 'Something went wrong. Please try again.')
 
@@ -91,6 +94,15 @@ export function DashboardPage() {
     }
   }
 
+  async function addVehicle(body: NewVehicle) {
+    const created = await createVehicle(body)
+    setVehicles((list) => [created, ...(list ?? [])])
+    setTotal((n) => n + 1)
+    setAdding(false)
+    setError(null)
+    setSuccess(`Vehicle added. ${created.make} ${created.model} now has ${created.quantity} in stock.`)
+  }
+
   async function clearFilters() {
     setFilters(NO_FILTERS)
     setError(null)
@@ -109,7 +121,14 @@ export function DashboardPage() {
         <div>
           <StripLabel>{isAdmin ? 'Manage inventory' : 'Inventory'}</StripLabel>
         </div>
-        <h1 className="m-0 font-display text-[30px] font-bold tracking-[-1px] md:text-[40px]">Vehicles in stock</h1>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <h1 className="m-0 font-display text-[30px] font-bold tracking-[-1px] md:text-[40px]">Vehicles in stock</h1>
+          {isAdmin && (
+            <Button size="lg" icon={<Plus size={18} aria-hidden="true" />} onClick={() => setAdding(true)}>
+              Add vehicle
+            </Button>
+          )}
+        </div>
         {vehicles && (
           <p className="m-0 text-[15px] text-grease">
             Showing {vehicles.length} of {total} vehicles
@@ -173,6 +192,7 @@ export function DashboardPage() {
           ))}
         </div>
       )}
+      {adding && <VehicleFormDialog mode="add" onSave={addVehicle} onClose={() => setAdding(false)} />}
     </AppLayout>
   )
 }
