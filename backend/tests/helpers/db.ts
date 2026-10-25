@@ -2,7 +2,7 @@ import { prisma } from '../../src/lib/prisma';
 
 /** Empties every table so each test starts from a clean database. */
 export async function resetDatabase(): Promise<void> {
-  await prisma.$executeRawUnsafe('TRUNCATE TABLE "users" RESTART IDENTITY CASCADE');
+  await prisma.$executeRawUnsafe('TRUNCATE TABLE "users", "vehicles" RESTART IDENTITY CASCADE');
 }
 
 /** Closes the database connection so Jest can exit cleanly. */

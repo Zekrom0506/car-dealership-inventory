@@ -25,3 +25,29 @@ model User {
 
   @@map("users")
 }
+
+/// The fixed list of vehicle categories (decision 7).
+enum Category {
+  Sedan
+  SUV
+  Hatchback
+  Truck
+  Coupe
+  Convertible
+  Van
+}
+
+model Vehicle {
+  id        Int      @id @default(autoincrement())
+  make      String
+  model     String
+  category  Category
+  /// Whole currency units (no decimals).
+  price     Int
+  /// Units in stock; never negative.
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("vehicles")
+}
