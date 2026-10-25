@@ -5,6 +5,7 @@ Context for any AI session continuing this project. Keep short; update as we go.
 ## Working rules
 - **Strict TDD:** write failing test → run it, confirm it fails for the right reason → minimum code to pass → refactor.
 - **Always show the RED output** (the actual failing test lines) in the message and stop before GREEN — even for one-line changes. Text between tool calls is not shown to the user.
+- **No screenshots or comparison images** (to save tokens). After a visual step, tell the user which page to open (e.g. `npm run dev` → http://localhost:5173/gallery.html) and they check it in the browser.
 - **Ask vs decide:** if something is ambiguous or a decision would be costly to change later, ask the user before building. For small, obvious choices, decide and tell the user what was chosen.
 - **Small steps:** after each RED / GREEN / REFACTOR step, stop and wait for the user.
 - Never change a test just to make it pass without explaining why.
@@ -78,6 +79,7 @@ Tests added for code that already exists and that **pass immediately** use `test
 - Known history quirk: commit `ef061b5` (refactor) also contains the clear-messages change, so `1ad14e6` [RED] did not actually fail. Left as-is; mention in README.
 
 ## Known limitations (put in README)
+- **Login token in `localStorage`.** The session (`yourGarage.session`) is kept in localStorage so users stay logged in after a refresh. Any script on the page can read it, so an XSS bug could steal it. Safer alternative: an httpOnly, Secure, SameSite cookie set by the backend (needs cookie handling and CSRF protection). Kept localStorage for simplicity in this kata. The app drops expired tokens on load; the server still verifies every request.
 - **No downward stock correction.** Quantity is locked out of PUT and restock only adds. If a stock-take finds fewer cars, an admin can only lower stock by "purchasing" the extra units (safe: single conditional UPDATE). Decided 2026-10-25 (option 1).
   - **Future improvement:** admin-only `POST /api/vehicles/:id/adjust` with `{ change: -2 }` — a relative, race-safe change that refuses to go below 0. Never "set quantity to N", which could overwrite a concurrent purchase.
 
@@ -101,6 +103,8 @@ Brand "yourGarage": display 700, 46px desktop header (−1.5px tracking) / 32–
 - Danger: `bg-rust` text **paper** (cream on rust — black fails contrast), 600.
 - Disabled primary ("Sold out"): transparent, `1px dashed grease`, text grease, 400, `cursor: not-allowed`.
 - Outline (header Log out): transparent, `1.5px solid ink`, height 40px. Mobile icon buttons: 44×44, `1.5px solid ink`.
+
+**Button states (added 2026-10-25, not in the design boards):** hover — primary `orange-burnt`, secondary `orange-light-hover`, danger `rust-hover` (both palette mixes in theme.css), outline `ink/8` fill; keyboard focus — 2px `orange-burnt` outline, 2px offset (`focus-visible`); disabled — primary = dashed "Sold out" style, secondary/danger/outline = 50% opacity; disabled buttons never change on hover.
 
 **Labels (yellow strip):** IBM Plex Mono 600, 12px, letter-spacing 1.2px, UPPERCASE, `bg-label` text ink, padding 4px 8px. Variants: SOLD OUT = `bg-rust` text paper; ONLY 1 LEFT = yellow + `1.5px solid ink`; ADMIN badge = `bg-ink` text label (11–12px, 1.2–1.5px tracking).
 
@@ -153,8 +157,8 @@ Login card: `bg-card`, `1.5px solid ink`, `shadow-offset` (sm on mobile), 440px 
 ### Phase 2 — Frontend design ✅ complete (`docs/design/`; tokens in `frontend/src/styles/theme.css`)
 ### Phase 3 — Frontend build (TDD with Vitest + RTL)
 - [x] 0. Test tooling (Vitest 5, jsdom, RTL, jest-dom), `/api` dev proxy, 1600px backgrounds
-- [ ] 1. Shared UI: Button, Label, TextField, Banner, `formatInr`
-- [ ] 2. API client + auth state (token storage, Bearer header, 401 → logout)
+- [x] 1. Shared UI: Button, StripLabel, TextField, Banner, `formatInr` (+ dev gallery at `/gallery.html`)
+- [x] 2. API client (`src/api/client.ts`) + auth state (`AuthProvider` / `useAuth`; register auto-logs in; 401 with a token → logout)
 - [ ] 3. Log in + Register pages
 - [ ] 4. Routing + guards
 - [ ] 5. Dashboard list (skeleton, card states, Sold out disabled, Only 1 left, "Showing X of Y")
