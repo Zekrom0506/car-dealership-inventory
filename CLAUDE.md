@@ -164,11 +164,11 @@ Login card: `bg-card`, `1.5px solid ink`, `shadow-offset` (sm on mobile), 440px 
 - [x] 4. Routing + guards (`src/AppRoutes.tsx`: RequireAuth, GuestOnly, unknown paths → `/`; wired in `App.tsx`)
 - [x] 4a. **Backend:** optional `imageUrl` on vehicles (decision 23), RED/GREEN; then seed sets it for the 12 sample cars
 - [ ] 5. Dashboard header (brand sign, user email, ADMIN badge, **Log out** button → clears session → /login) + list (skeleton, card states with photo or car-icon placeholder — photo uses `object-cover` in one fixed ratio for every card; if `imageUrl` is null **or the image fails to load** (onError), show the placeholder instead, Sold out disabled, Only 1 left, "Showing X of Y")
-- [ ] 6a. **Backend:** `q` search parameter (make OR model), its own RED/GREEN cycle
-- [ ] 6b. Search + filter (desktop form, mobile box/chips/panel, empty state, Clear all filters)
+- [x] 6a. **Backend:** `q` search parameter (make OR model), its own RED/GREEN cycle
+- [ ] 6b. Search + filter (desktop form, empty state, Clear all filters)
 - [ ] 7. Purchase flow (banner, stock update, 409 error, no double-submit)
 - [ ] 8. Admin (role-gated UI, Add/Edit dialog, Restock stepper, Delete confirm)
-- [ ] 9. Mobile layout, account menu, dialog a11y (Esc, focus trap), screenshots
+- [ ] 9. Mobile layout (search box → `q`, category chips, Filter panel), account menu, dialog a11y (Esc, focus trap), screenshots
 ### Phase 4 — Deployment (Neon Postgres + API host + frontend host)
 - **CORS:** if the frontend and API end up on different domains, the backend needs CORS allowing only the frontend's origin — add as a small backend RED/GREEN cycle here. (Locally the Vite proxy avoids it.)
 ### Phase 5 — README (setup, screenshots, "My AI Usage"), test report, PROMPTS.md
