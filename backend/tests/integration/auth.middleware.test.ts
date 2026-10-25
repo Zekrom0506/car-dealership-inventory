@@ -7,6 +7,7 @@ import { signToken } from '../../src/lib/jwt';
 import { prisma } from '../../src/lib/prisma';
 import { resetDatabase, disconnectDatabase } from '../helpers/db';
 import { createUser } from '../helpers/users';
+import { authHeader } from '../helpers/auth';
 
 /** A tiny app used only by these tests: one protected route and one admin-only route. */
 const app = express();
@@ -27,7 +28,7 @@ describe('requireAuth', () => {
 
     const response = await request(app)
       .get('/protected')
-      .set('Authorization', `Bearer ${signToken(user)}`);
+      .set('Authorization', authHeader(user));
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ user: { id: user.id, role: 'USER' } });
@@ -103,7 +104,7 @@ describe('requireAdmin', () => {
 
     const response = await request(app)
       .get('/admin-only')
-      .set('Authorization', `Bearer ${signToken(admin)}`);
+      .set('Authorization', authHeader(admin));
 
     expect(response.status).toBe(200);
   });
@@ -113,7 +114,7 @@ describe('requireAdmin', () => {
 
     const response = await request(app)
       .get('/admin-only')
-      .set('Authorization', `Bearer ${signToken(user)}`);
+      .set('Authorization', authHeader(user));
 
     expect(response.status).toBe(403);
     expect(response.body).toEqual({ error: 'Admin access required' });
