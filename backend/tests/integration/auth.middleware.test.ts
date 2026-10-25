@@ -118,4 +118,17 @@ describe('requireAdmin', () => {
     expect(response.status).toBe(403);
     expect(response.body).toEqual({ error: 'Admin access required' });
   });
+
+  it('uses the current role from the database: a demoted admin gets 403 with their old token', async () => {
+    const admin = await createUser({ email: 'admin@example.com', role: 'ADMIN' });
+    const tokenIssuedWhileAdmin = signToken(admin);
+    await prisma.user.update({ where: { id: admin.id }, data: { role: 'USER' } });
+
+    const response = await request(app)
+      .get('/admin-only')
+      .set('Authorization', `Bearer ${tokenIssuedWhileAdmin}`);
+
+    expect(response.status).toBe(403);
+    expect(response.body).toEqual({ error: 'Admin access required' });
+  });
 });
