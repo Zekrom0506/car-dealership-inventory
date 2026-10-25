@@ -72,8 +72,9 @@ Co-authored-by: Claude <claude@users.noreply.github.com>
 - `git add` uses exact file paths only (never whole folders), so each commit holds only its own changes.
 - Known history quirk: commit `ef061b5` (refactor) also contains the clear-messages change, so `1ad14e6` [RED] did not actually fail. Left as-is; mention in README.
 
-## Open questions
-- **Step 10:** quantity is locked out of PUT and restock only adds. How should an admin correct a miscount **downward** (e.g. a stock-take finds fewer cars)? Decide before writing step 10 tests.
+## Known limitations (put in README)
+- **No downward stock correction.** Quantity is locked out of PUT and restock only adds. If a stock-take finds fewer cars, an admin can only lower stock by "purchasing" the extra units (safe: single conditional UPDATE). Decided 2026-10-25 (option 1).
+  - **Future improvement:** admin-only `POST /api/vehicles/:id/adjust` with `{ change: -2 }` — a relative, race-safe change that refuses to go below 0. Never "set quantity to N", which could overwrite a concurrent purchase.
 
 ## Phases & progress
 ### Phase 1 — Backend (TDD)
