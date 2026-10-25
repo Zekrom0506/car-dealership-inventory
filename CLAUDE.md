@@ -159,7 +159,7 @@ Login card: `bg-card`, `1.5px solid ink`, `shadow-offset` (sm on mobile), 440px 
 - [x] 0. Test tooling (Vitest 5, jsdom, RTL, jest-dom), `/api` dev proxy, 1600px backgrounds
 - [x] 1. Shared UI: Button, StripLabel, TextField, Banner, `formatInr` (+ dev gallery at `/gallery.html`)
 - [x] 2. API client (`src/api/client.ts`) + auth state (`AuthProvider` / `useAuth`; register auto-logs in; 401 with a token → logout)
-- [ ] 3. Log in + Register pages
+- [x] 3. Log in + Register pages (shared submit logic: `src/hooks/useSubmitAction.ts`)
 - [ ] 4. Routing + guards
 - [ ] 5. Dashboard list (skeleton, card states, Sold out disabled, Only 1 left, "Showing X of Y")
 - [ ] 6a. **Backend:** `q` search parameter (make OR model), its own RED/GREEN cycle
