@@ -8,6 +8,9 @@ module.exports = {
   // Loads .env.test before each test file.
   setupFiles: ['<rootDir>/tests/setup/loadTestEnv.ts'],
   // Coverage is measured on our own application code only.
-  collectCoverageFrom: ['src/**/*.ts', '!src/server.ts', '!src/generated/**'],
+  // Excluded: the generated Prisma client, and the two entry points (server.ts, seed/run.ts).
+  // The entry points are tested by starting them as real separate processes
+  // (server.startup.test.ts, seed.test.ts), which Jest's coverage cannot measure.
+  collectCoverageFrom: ['src/**/*.ts', '!src/generated/**', '!src/server.ts', '!src/seed/run.ts'],
   coverageReporters: ['text', 'html'],
 };
