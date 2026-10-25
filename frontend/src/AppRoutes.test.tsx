@@ -72,6 +72,13 @@ describe('routing guards', () => {
       expect(screen.queryByRole('heading', { name: 'Create your account' })).not.toBeInTheDocument()
     })
 
+    it('sends an unknown path to the dashboard', async () => {
+      logInAs()
+      renderRoutesAt('/xyz')
+
+      expect(await screen.findByLabelText('current path')).toHaveTextContent(/^\/$/)
+    })
+
     it('stays on the dashboard at /', () => {
       logInAs()
       renderRoutesAt('/')
