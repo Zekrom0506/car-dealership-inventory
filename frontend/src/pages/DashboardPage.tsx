@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ApiError } from '../api/client'
-import { listVehicles, NO_FILTERS, searchVehicles, type Vehicle, type VehicleFilters } from '../api/vehicles'
+import { listVehicles, NO_FILTERS, purchaseVehicle, searchVehicles, type Vehicle, type VehicleFilters } from '../api/vehicles'
 import { useAuth } from '../auth/useAuth'
 import { AppLayout } from '../components/dashboard/AppLayout'
 import { FilterForm } from '../components/dashboard/FilterForm'
@@ -23,6 +23,10 @@ export function DashboardPage() {
   /** The filters of the search being shown (null = the full list). */
   const [applied, setApplied] = useState<VehicleFilters | null>(null)
   const [searching, setSearching] = useState(false)
+  const [success, setSuccess] = useState<string | null>(null)
+  const [purchasingId, setPurchasingId] = useState<number | null>(null)
+  // A ref (not state) so a second click in the same instant is still blocked.
+  const purchaseInProgress = useRef(false)
 
   const messageFrom = (e: unknown) => (e instanceof ApiError ? e.message : 'Something went wrong. Please try again.')
 
@@ -61,6 +65,32 @@ export function DashboardPage() {
     }
   }
 
+  async function purchase(vehicle: Vehicle) {
+    if (purchaseInProgress.current) return
+    purchaseInProgress.current = true
+    setPurchasingId(vehicle.id)
+    setError(null)
+    setSuccess(null)
+    try {
+      const updated = await purchaseVehicle(vehicle.id)
+      setVehicles((list) => list?.map((v) => (v.id === updated.id ? updated : v)) ?? null)
+      setSuccess(`Purchase confirmed. ${updated.make} ${updated.model} is yours — ${updated.quantity} left in stock.`)
+    } catch (e) {
+      setError(messageFrom(e))
+      // Stock changed under us (e.g. sold out meanwhile): refresh what's on screen.
+      if (e instanceof ApiError && e.status === 409) {
+        try {
+          setVehicles(await (applied ? searchVehicles(applied) : listVehicles()))
+        } catch {
+          // keep the list we have; the error banner already explains what happened
+        }
+      }
+    } finally {
+      purchaseInProgress.current = false
+      setPurchasingId(null)
+    }
+  }
+
   async function clearFilters() {
     setFilters(NO_FILTERS)
     setError(null)
@@ -89,6 +119,11 @@ export function DashboardPage() {
 
       <FilterForm filters={filters} onChange={setFilters} onSubmit={runSearch} busy={searching} />
 
+      {success && (
+        <Banner tone="success" onDismiss={() => setSuccess(null)}>
+          {success}
+        </Banner>
+      )}
       {error && <Banner tone="error">{error}</Banner>}
 
       {loading && (
@@ -134,7 +169,7 @@ export function DashboardPage() {
       {vehicles && vehicles.length > 0 && (
         <div className={GRID}>
           {vehicles.map((v) => (
-            <VehicleCard key={v.id} vehicle={v} />
+            <VehicleCard key={v.id} vehicle={v} onPurchase={() => purchase(v)} purchasing={purchasingId === v.id} />
           ))}
         </div>
       )}

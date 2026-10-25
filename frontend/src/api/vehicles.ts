@@ -45,3 +45,9 @@ export async function searchVehicles(filters: VehicleFilters): Promise<Vehicle[]
   const { vehicles } = await apiRequest<{ vehicles: Vehicle[] }>(`/vehicles/search${query ? `?${query}` : ''}`)
   return vehicles
 }
+
+/** POST /api/vehicles/:id/purchase — buys one unit; returns the vehicle with its new stock. */
+export async function purchaseVehicle(id: number): Promise<Vehicle> {
+  const { vehicle } = await apiRequest<{ vehicle: Vehicle }>(`/vehicles/${id}/purchase`, { method: 'POST' })
+  return vehicle
+}

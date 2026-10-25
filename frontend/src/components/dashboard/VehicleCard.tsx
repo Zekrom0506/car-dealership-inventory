@@ -6,7 +6,16 @@ import { StripLabel } from '../ui/StripLabel'
 import { VehiclePhoto } from './VehiclePhoto'
 
 /** One vehicle: photo, labels, make/model, price, stock and the Purchase button. */
-export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
+export function VehicleCard({
+  vehicle,
+  onPurchase,
+  purchasing = false,
+}: {
+  vehicle: Vehicle
+  onPurchase?: () => void
+  /** This card's purchase is in progress. */
+  purchasing?: boolean
+}) {
   const { make, model, category, price, quantity, imageUrl } = vehicle
   const soldOut = quantity === 0
 
@@ -41,8 +50,8 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
             Sold out
           </Button>
         ) : (
-          <Button className="w-full" icon={<ShoppingCart size={18} aria-hidden="true" />}>
-            Purchase
+          <Button className="w-full" busy={purchasing} onClick={onPurchase} icon={<ShoppingCart size={18} aria-hidden="true" />}>
+            {purchasing ? 'Purchasing…' : 'Purchase'}
           </Button>
         )}
       </div>
